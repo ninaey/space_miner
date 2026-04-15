@@ -1,0 +1,734 @@
+/* ================================================================
+   SPACE COLONY MINER — Xsolla Auth Gateway CSS
+   File:   src/styles/auth.css
+   Naming: BEM  →  Block__Element--Modifier
+   Prefix: scm-auth
+
+   Structure:
+     1.  Page layout & background
+     2.  Decorative elements (nebula, planets)
+     3.  Main modal container
+     4.  Game branding header
+     5.  Xsolla widget wrapper
+     6.  Xsolla widget theme overrides  ← broad CSS targeting
+         5a. Root shell
+         5b. Tab switcher
+         5c. Input fields & labels
+         5d. Buttons (primary / secondary / social)
+         5e. Links & separators
+         5f. Validation messages
+         5g. Checkbox & terms
+         5h. Headings & misc
+         5i. Loading states
+     7.  Auth footer
+     8.  Responsive breakpoints
+   ================================================================ */
+
+
+/* ────────────────────────────────────────────────────────────────
+   1. PAGE LAYOUT
+   ──────────────────────────────────────────────────────────────── */
+
+.scm-auth__page {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 24px 16px 60px;
+  background: radial-gradient(
+    ellipse at 30% 20%,
+    #0D1B2A 0%,
+    #0B0E14 40%,
+    #050810 100%
+  );
+}
+
+
+/* ────────────────────────────────────────────────────────────────
+   2. DECORATIVE ELEMENTS
+   ──────────────────────────────────────────────────────────────── */
+
+/* Nebula colour wash */
+.scm-auth__nebula {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at 70% 60%, rgba(0, 242, 255, 0.05) 0%, transparent 60%),
+    radial-gradient(ellipse at 20% 80%, rgba(255, 140,   0, 0.05) 0%, transparent 50%);
+}
+
+/* Small planet — top-right corner */
+.scm-auth__planet--top-right {
+  position: fixed;
+  top: 28px;
+  right: 28px;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  opacity: 0.22;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(circle at 35% 35%, #4A5A6A, #1A2535 60%, #0A1020);
+  box-shadow: 0 0 40px rgba(0, 242, 255, 0.12);
+}
+
+/* Large planet — bottom-left corner */
+.scm-auth__planet--bottom-left {
+  position: fixed;
+  bottom: -40px;
+  left: -40px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  opacity: 0.14;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(circle at 40% 40%, rgba(255, 140, 0, 0.3), #2A1A0A 60%, #0A0808);
+}
+
+
+/* ────────────────────────────────────────────────────────────────
+   3. MAIN MODAL CONTAINER
+   ──────────────────────────────────────────────────────────────── */
+
+.scm-auth__container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 420px;
+  margin-top: 32px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: rgba(11, 14, 20, 0.90);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(0, 242, 255, 0.22);
+  box-shadow:
+    0  0  60px rgba(0, 242, 255, 0.07),
+    0 30px 80px rgba(0,   0,   0, 0.55),
+    inset 0 1px 0 rgba(0, 242, 255, 0.08);
+}
+
+/* Subtle CRT scanline texture overlay */
+.scm-auth__container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 242, 255, 0.010) 2px,
+    rgba(0, 242, 255, 0.010) 4px
+  );
+}
+
+/* Moving scan-line beam */
+.scm-auth__container::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0, 242, 255, 0.28), transparent);
+  animation: scm-scan__line--move 5s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+
+/* ────────────────────────────────────────────────────────────────
+   4. GAME BRANDING HEADER
+   ──────────────────────────────────────────────────────────────── */
+
+.scm-auth__header {
+  position: relative;
+  z-index: 1;
+  padding: 30px 24px 18px;
+  text-align: center;
+}
+
+.scm-auth__tagline {
+  font-family: var(--scm-font--data);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  color: rgba(0, 242, 255, 0.48);
+  text-transform: uppercase;
+  margin: 0 0 6px;
+}
+
+.scm-auth__title {
+  font-family: var(--scm-font--display);
+  font-size: 22px;
+  letter-spacing: 0.18em;
+  color: #FFFFFF;
+  text-shadow: 0 0 20px #00F2FF, 0 0 40px rgba(0, 242, 255, 0.4);
+  line-height: 1.1;
+  margin: 0;
+}
+
+.scm-auth__subtitle {
+  font-family: var(--scm-font--display);
+  font-size: 15px;
+  letter-spacing: 0.16em;
+  color: var(--scm-color--cyan);
+  text-shadow: 0 0 14px var(--scm-color--cyan);
+  margin: 3px 0 0;
+}
+
+/* Glowing horizontal rule */
+.scm-auth__divider {
+  margin: 16px auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 242, 255, 0.50), transparent);
+}
+
+
+/* ────────────────────────────────────────────────────────────────
+   5. XSOLLA WIDGET WRAPPER
+   ──────────────────────────────────────────────────────────────── */
+
+.scm-auth__widget-wrapper {
+  position: relative;
+  z-index: 1;
+  padding: 0;               /* widget has its own internal padding */
+}
+
+/* The element Xsolla mounts into */
+#xl_auth {
+  width: 100%;
+  min-height: 460px;
+}
+
+
+/* ────────────────────────────────────────────────────────────────
+   6. XSOLLA WIDGET THEME OVERRIDES
+   These rules target the Xsolla Login Widget's internal DOM.
+   All selectors are scoped to #xl_auth so nothing leaks.
+   !important is intentional — Xsolla injects its own styles.
+
+   NOTE: If Xsolla renders inside an <iframe>, these rules will
+   NOT pierce it. Contact Xsolla support to request a hosted-SDK
+   CSS override file instead.
+   ──────────────────────────────────────────────────────────────── */
+
+/* ── 6a. Root widget shell ─────────────────────────────────── */
+
+#xl_auth,
+#xl_auth > *,
+#xl_auth .xl-widget,
+#xl_auth [class*="widget"],
+#xl_auth [class*="login-widget"],
+#xl_auth [class*="auth-widget"] {
+  background: transparent !important;
+  color: var(--scm-color--white) !important;
+  font-family: var(--scm-font--data) !important;
+}
+
+/* Wipe any white/light card backgrounds the widget applies */
+#xl_auth [class*="card"],
+#xl_auth [class*="panel"],
+#xl_auth [class*="box"],
+#xl_auth [class*="container"],
+#xl_auth [class*="form-wrapper"],
+#xl_auth [class*="login-form"],
+#xl_auth [class*="register-form"] {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+
+/* ── 6b. Tab / mode switcher (Login ↔ Register) ──────────── */
+
+#xl_auth [class*="tabs"],
+#xl_auth [class*="tab-bar"],
+#xl_auth [class*="tab-list"],
+#xl_auth [class*="switch"],
+#xl_auth [class*="mode-switcher"] {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(0, 242, 255, 0.12) !important;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  margin: 0 16px 4px !important;
+}
+
+#xl_auth [class*="tab-item"],
+#xl_auth [class*="tab-btn"],
+#xl_auth [class*="switch-item"],
+#xl_auth [class*="mode-btn"] {
+  font-family: var(--scm-font--display) !important;
+  font-size: 9px !important;
+  letter-spacing: 0.12em !important;
+  color: rgba(255, 255, 255, 0.38) !important;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+  transition: color 0.2s, background 0.2s, border-color 0.2s !important;
+  text-transform: uppercase !important;
+}
+
+#xl_auth [class*="tab-item--active"],
+#xl_auth [class*="tab-item--selected"],
+#xl_auth [class*="switch-item--active"],
+#xl_auth [class*="mode-btn--active"],
+#xl_auth [class*="active"] {
+  background: rgba(0, 242, 255, 0.12) !important;
+  color: var(--scm-color--cyan) !important;
+  border-bottom-color: var(--scm-color--cyan) !important;
+}
+
+
+/* ── 6c. Input fields & labels ────────────────────────────── */
+
+#xl_auth input[type="text"],
+#xl_auth input[type="email"],
+#xl_auth input[type="password"],
+#xl_auth input[type="tel"],
+#xl_auth input[type="username"],
+#xl_auth textarea,
+#xl_auth [class*="input"],
+#xl_auth [class*="field__input"],
+#xl_auth [class*="text-field"] {
+  background: #141720 !important;
+  border: 1px solid rgba(0, 242, 255, 0.20) !important;
+  border-radius: 10px !important;
+  color: #FFFFFF !important;
+  font-family: var(--scm-font--data) !important;
+  font-size: 14px !important;
+  padding: 12px 14px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  transition: border-color 0.2s, box-shadow 0.2s !important;
+  caret-color: var(--scm-color--cyan) !important;
+  outline: none !important;
+}
+
+#xl_auth input:focus,
+#xl_auth textarea:focus,
+#xl_auth [class*="input"]:focus,
+#xl_auth [class*="field__input"]:focus {
+  border-color: var(--scm-color--cyan) !important;
+  box-shadow: 0 0 0 3px rgba(0, 242, 255, 0.10) !important;
+}
+
+#xl_auth input::placeholder,
+#xl_auth textarea::placeholder {
+  color: rgba(255, 255, 255, 0.28) !important;
+  font-family: var(--scm-font--data) !important;
+}
+
+/* Field labels */
+#xl_auth label,
+#xl_auth [class*="field__label"],
+#xl_auth [class*="input-label"],
+#xl_auth [class*="form-label"] {
+  font-family: var(--scm-font--display) !important;
+  font-size: 8px !important;
+  letter-spacing: 0.14em !important;
+  color: rgba(0, 242, 255, 0.55) !important;
+  text-transform: uppercase !important;
+  margin-bottom: 6px !important;
+  display: block !important;
+}
+
+/* Password show/hide toggle icon inside input */
+#xl_auth [class*="password-toggle"],
+#xl_auth [class*="eye-icon"],
+#xl_auth [class*="show-password"] {
+  color: rgba(0, 242, 255, 0.45) !important;
+  cursor: pointer !important;
+  transition: color 0.2s !important;
+}
+#xl_auth [class*="password-toggle"]:hover {
+  color: var(--scm-color--cyan) !important;
+}
+
+
+/* ── 6d. Buttons ─────────────────────────────────────────── */
+
+/* Primary — Sign In / Register / Continue */
+#xl_auth button[type="submit"],
+#xl_auth [class*="button--primary"],
+#xl_auth [class*="btn--primary"],
+#xl_auth [class*="submit-btn"],
+#xl_auth [class*="login-btn"],
+#xl_auth [class*="register-btn"],
+#xl_auth [class*="continue-btn"] {
+  background: linear-gradient(135deg, #FF8C00, #FF6200) !important;
+  border: none !important;
+  border-radius: 12px !important;
+  color: #FFFFFF !important;
+  font-family: var(--scm-font--display) !important;
+  font-size: 11px !important;
+  letter-spacing: 0.13em !important;
+  text-transform: uppercase !important;
+  padding: 14px 20px !important;
+  width: 100% !important;
+  cursor: pointer !important;
+  transition: transform 0.15s, box-shadow 0.2s !important;
+  box-shadow:
+    0 0 22px rgba(255, 140, 0, 0.40),
+    0  4px 16px rgba(255, 140, 0, 0.30) !important;
+  animation: scm__glow--orange 2.2s ease-in-out infinite !important;
+}
+
+#xl_auth button[type="submit"]:hover,
+#xl_auth [class*="button--primary"]:hover,
+#xl_auth [class*="btn--primary"]:hover {
+  transform: translateY(-1px) scale(1.01) !important;
+  box-shadow:
+    0 0 32px rgba(255, 140, 0, 0.55),
+    0  6px 22px rgba(255, 140, 0, 0.40) !important;
+}
+
+#xl_auth button[type="submit"]:active,
+#xl_auth [class*="button--primary"]:active {
+  transform: translateY(0) scale(0.99) !important;
+}
+
+#xl_auth button[type="submit"]:disabled,
+#xl_auth [class*="button--primary"]:disabled {
+  background: rgba(255, 140, 0, 0.35) !important;
+  box-shadow: none !important;
+  animation: none !important;
+  cursor: not-allowed !important;
+}
+
+/* Secondary / outline buttons */
+#xl_auth [class*="button--secondary"],
+#xl_auth [class*="btn--secondary"],
+#xl_auth [class*="btn--ghost"],
+#xl_auth [class*="back-btn"] {
+  background: rgba(0, 242, 255, 0.06) !important;
+  border: 1px solid rgba(0, 242, 255, 0.25) !important;
+  border-radius: 10px !important;
+  color: var(--scm-color--cyan) !important;
+  font-family: var(--scm-font--display) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.09em !important;
+  text-transform: uppercase !important;
+  cursor: pointer !important;
+  transition: background 0.2s, border-color 0.2s !important;
+}
+
+#xl_auth [class*="button--secondary"]:hover,
+#xl_auth [class*="btn--secondary"]:hover {
+  background: rgba(0, 242, 255, 0.12) !important;
+  border-color: var(--scm-color--cyan) !important;
+}
+
+/* Social provider buttons (Google, Steam, Twitch, etc.) */
+#xl_auth [class*="social-btn"],
+#xl_auth [class*="social-button"],
+#xl_auth [class*="oauth-btn"],
+#xl_auth [class*="provider-btn"],
+#xl_auth [class*="network-btn"] {
+  border-radius: 10px !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  transition: transform 0.2s, box-shadow 0.2s !important;
+  font-family: var(--scm-font--data) !important;
+}
+
+#xl_auth [class*="social-btn"]:hover,
+#xl_auth [class*="social-button"]:hover,
+#xl_auth [class*="oauth-btn"]:hover,
+#xl_auth [class*="provider-btn"]:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* Social buttons grid / list wrapper */
+#xl_auth [class*="social-list"],
+#xl_auth [class*="social-grid"],
+#xl_auth [class*="provider-list"],
+#xl_auth [class*="oauth-list"] {
+  gap: 10px !important;
+}
+
+
+/* ── 6e. Links & separator ───────────────────────────────── */
+
+#xl_auth a,
+#xl_auth [class*="link"],
+#xl_auth [class*="forgot-password"],
+#xl_auth [class*="reset-link"] {
+  color: rgba(0, 242, 255, 0.60) !important;
+  font-family: var(--scm-font--data) !important;
+  font-size: 12px !important;
+  text-decoration: none !important;
+  transition: color 0.2s !important;
+}
+
+#xl_auth a:hover,
+#xl_auth [class*="link"]:hover {
+  color: var(--scm-color--cyan) !important;
+  text-decoration: underline !important;
+}
+
+/* "Or continue with" separator */
+#xl_auth [class*="separator"],
+#xl_auth [class*="divider"],
+#xl_auth [class*="or-separator"] {
+  color: rgba(255, 255, 255, 0.22) !important;
+  font-family: var(--scm-font--data) !important;
+  font-size: 11px !important;
+  letter-spacing: 0.06em !important;
+}
+
+#xl_auth [class*="separator"]::before,
+#xl_auth [class*="separator"]::after,
+#xl_auth [class*="divider"]::before,
+#xl_auth [class*="divider"]::after {
+  background: rgba(255, 255, 255, 0.09) !important;
+}
+
+
+/* ── 6f. Validation & alert messages ─────────────────────── */
+
+/* Inline field error */
+#xl_auth [class*="error-message"],
+#xl_auth [class*="field-error"],
+#xl_auth [class*="validation-error"],
+#xl_auth [class*="alert--error"],
+#xl_auth [class*="form-error"] {
+  color: #FF6666 !important;
+  font-family: var(--scm-font--data) !important;
+  font-size: 11px !important;
+  background: rgba(255, 68, 68, 0.10) !important;
+  border: 1px solid rgba(255, 68, 68, 0.30) !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  margin-top: 6px !important;
+}
+
+/* Success / confirmation banner */
+#xl_auth [class*="success-message"],
+#xl_auth [class*="alert--success"],
+#xl_auth [class*="confirm-message"] {
+  color: var(--scm-color--cyan) !important;
+  font-family: var(--scm-font--data) !important;
+  font-size: 12px !important;
+  background: rgba(0, 242, 255, 0.08) !important;
+  border: 1px solid rgba(0, 242, 255, 0.28) !important;
+  border-radius: 8px !important;
+  padding: 10px 14px !important;
+}
+
+/* Info / notice banners */
+#xl_auth [class*="alert--info"],
+#xl_auth [class*="notice"] {
+  color: rgba(255, 255, 255, 0.65) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 8px !important;
+  font-family: var(--scm-font--data) !important;
+  font-size: 11px !important;
+  padding: 8px 12px !important;
+}
+
+/* Password strength bar */
+#xl_auth [class*="strength-bar"],
+#xl_auth [class*="password-strength"] {
+  border-radius: 4px !important;
+  height: 4px !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  overflow: hidden !important;
+}
+#xl_auth [class*="strength-bar__fill"],
+#xl_auth [class*="strength-fill"],
+#xl_auth [class*="strength-level"] {
+  height: 100% !important;
+  border-radius: 4px !important;
+  transition: width 0.3s ease !important;
+}
+
+
+/* ── 6g. Checkbox, radio & terms text ────────────────────── */
+
+#xl_auth input[type="checkbox"] {
+  accent-color: var(--scm-color--cyan) !important;
+  width: 15px !important;
+  height: 15px !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+}
+
+#xl_auth input[type="radio"] {
+  accent-color: var(--scm-color--orange) !important;
+  cursor: pointer !important;
+}
+
+#xl_auth [class*="checkbox-label"],
+#xl_auth [class*="terms-text"],
+#xl_auth [class*="agreement"] {
+  color: rgba(255, 255, 255, 0.48) !important;
+  font-family: var(--scm-font--data) !important;
+  font-size: 11px !important;
+  line-height: 1.5 !important;
+}
+
+#xl_auth [class*="terms-link"],
+#xl_auth [class*="policy-link"] {
+  color: rgba(0, 242, 255, 0.70) !important;
+}
+
+
+/* ── 6h. Headings & typography ───────────────────────────── */
+
+#xl_auth h1,
+#xl_auth h2,
+#xl_auth h3,
+#xl_auth h4,
+#xl_auth [class*="title"],
+#xl_auth [class*="heading"],
+#xl_auth [class*="section-title"] {
+  font-family: var(--scm-font--display) !important;
+  color: var(--scm-color--white) !important;
+  letter-spacing: 0.10em !important;
+}
+
+#xl_auth p,
+#xl_auth span,
+#xl_auth [class*="description"],
+#xl_auth [class*="hint"],
+#xl_auth [class*="subtitle"] {
+  font-family: var(--scm-font--data) !important;
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+
+/* CAPTCHA container */
+#xl_auth [class*="captcha"] {
+  filter: invert(0.88) hue-rotate(180deg) brightness(0.85) !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+
+/* ── 6i. Loading states ──────────────────────────────────── */
+
+/* Spinner ring */
+#xl_auth [class*="spinner"],
+#xl_auth [class*="loader"],
+#xl_auth [class*="loading-ring"] {
+  border-color: rgba(0, 242, 255, 0.18) !important;
+  border-top-color: var(--scm-color--cyan) !important;
+}
+
+/* Skeleton / shimmer placeholders */
+#xl_auth [class*="skeleton"],
+#xl_auth [class*="shimmer"],
+#xl_auth [class*="placeholder-loading"] {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(0, 242, 255, 0.07) 50%,
+    rgba(255, 255, 255, 0.04) 75%
+  ) !important;
+  background-size: 200% 100% !important;
+  animation: scm-auth__skeleton--shimmer 1.5s infinite !important;
+}
+
+@keyframes scm-auth__skeleton--shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+
+/* ────────────────────────────────────────────────────────────────
+   7. AUTH FOOTER
+   ──────────────────────────────────────────────────────────────── */
+
+.scm-auth__footer {
+  position: relative;
+  z-index: 1;
+  padding: 14px 24px 20px;
+  text-align: center;
+  border-top: 1px solid rgba(0, 242, 255, 0.08);
+  font-family: var(--scm-font--data);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.22);
+  letter-spacing: 0.04em;
+}
+
+.scm-auth__footer strong {
+  color: rgba(255, 255, 255, 0.42);
+  letter-spacing: 0.06em;
+}
+
+/* Xsolla brand lock icon colour */
+.scm-auth__footer .scm-auth__footer-lock {
+  color: rgba(0, 242, 255, 0.45);
+  margin-right: 4px;
+}
+
+
+/* ────────────────────────────────────────────────────────────────
+   8. RESPONSIVE BREAKPOINTS
+   ──────────────────────────────────────────────────────────────── */
+
+/* Mobile — full-bleed card, no border-radius on sides */
+@media (max-width: 440px) {
+  .scm-auth__page {
+    padding: 0 0 40px;
+    justify-content: flex-start;
+  }
+
+  .scm-auth__container {
+    max-width: 100%;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    margin-top: 0;
+    min-height: 100vh;
+  }
+
+  .scm-auth__planet--top-right {
+    width: 70px;
+    height: 70px;
+    top: 16px;
+    right: 16px;
+  }
+
+  .scm-auth__planet--bottom-left {
+    width: 140px;
+    height: 140px;
+  }
+
+  .scm-auth__header {
+    padding: 24px 20px 14px;
+  }
+
+  .scm-auth__title {
+    font-size: 19px;
+  }
+}
+
+/* Tablet & desktop — vertically centre the card */
+@media (min-width: 768px) {
+  .scm-auth__page {
+    justify-content: center;
+    padding: 40px 24px 60px;
+    min-height: 100vh;
+  }
+
+  .scm-auth__container {
+    margin-top: 0;
+    max-width: 420px;
+  }
+}
+
+/* Large desktop — slightly wider card */
+@media (min-width: 1024px) {
+  .scm-auth__container {
+    max-width: 440px;
+  }
+}

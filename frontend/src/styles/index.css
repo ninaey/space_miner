@@ -1,0 +1,11 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+@import './auth.css';
+
+body {
+  background: #05070B;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}

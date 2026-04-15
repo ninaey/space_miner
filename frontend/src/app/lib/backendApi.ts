@@ -1,0 +1,56 @@
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://localhost:8080';
+
+type JsonObject = Record<string, unknown>;
+
+async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(init.headers ?? {}),
+    },
+  });
+
+  if (!response.ok) {
+    const bodyText = await response.text();
+    throw new Error(bodyText || `Request failed with status ${response.status}`);
+  }
+
+  if (response.status === 204) {
+    return {} as T;
+  }
+
+  return response.json() as Promise<T>;
+}
+
+export interface LoginPayload {
+  userId: string;
+  username: string;
+  email?: string;
+}
+
+export interface LoginResponse {
+  player_id: string;
+  state: JsonObject;
+}
+
+export function loginOrRegisterPlayer(payload: LoginPayload): Promise<LoginResponse> {
+  return request<LoginResponse>('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({
+      user_id: payload.userId,
+      username: payload.username,
+      email: payload.email ?? '',
+    }),
+  });
+}
+
+export function syncGameProgress(token: string, payload: { clicks: number; depth_gain: number }): Promise<{ status: string }> {
+  return request<{ status: string }>('/game/sync', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+}

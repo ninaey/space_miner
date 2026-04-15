@@ -1,0 +1,742 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ================================================================
+   SPACE COLONY MINER — Global Game CSS
+   Naming convention: BEM  →  Block__Element--Modifier
+   Namespace prefix:  scm  →  Space Colony Miner
+
+   Structure:
+     1. CSS Custom Properties (design tokens)
+     2. Scrollbar
+     3. @keyframes  — scm__[effect]--[variant]
+     4. Utility classes — .scm-[block]__[element]--[modifier]
+   ================================================================ */
+
+
+/* ────────────────────────────────────────────────────────────────
+   1. DESIGN TOKENS
+   ──────────────────────────────────────────────────────────────── */
+:root {
+  /* Palette */
+  --scm-color--bg-deep:       #0B0E14;
+  --scm-color--bg-surface:    #0D1420;
+  --scm-color--bg-panel:      #090C14;
+  --scm-color--cyan:          #00F2FF;
+  --scm-color--cyan-dim:      #00F2FF40;
+  --scm-color--orange:        #FF8C00;
+  --scm-color--orange-dim:    #FF8C0040;
+  --scm-color--amber:         #FFB347;
+  --scm-color--gold:          #FFD700;
+  --scm-color--purple:        #9B59B6;
+  --scm-color--silver:        #C8DEFF;
+  --scm-color--white:         #FFFFFF;
+  --scm-color--white-muted:   #FFFFFF55;
+
+  /* Typography */
+  --scm-font--display:        'Orbitron', sans-serif;
+  --scm-font--data:           'Inter', sans-serif;
+
+  /* Motion */
+  --scm-duration--fast:       0.15s;
+  --scm-duration--normal:     0.3s;
+  --scm-duration--slow:       0.6s;
+  --scm-duration--pulse:      1.5s;
+
+  /* Spacing */
+  --scm-radius--card:         16px;
+  --scm-radius--btn:          11px;
+  --scm-radius--badge:        8px;
+  --scm-radius--pill:         20px;
+}
+
+
+/* ────────────────────────────────────────────────────────────────
+   2. SCROLLBAR  (scm-scrollbar)
+   ──────────────────────────────────────────────────────────────── */
+.scm-scrollbar::-webkit-scrollbar,
+::-webkit-scrollbar               { width: 4px; height: 4px; }
+.scm-scrollbar::-webkit-scrollbar-track,
+::-webkit-scrollbar-track          { background: var(--scm-color--bg-deep); }
+.scm-scrollbar::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb          { background: var(--scm-color--cyan-dim); border-radius: 4px; }
+.scm-scrollbar::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:hover    { background: var(--scm-color--cyan); }
+
+
+/* ────────────────────────────────────────────────────────────────
+   3. KEYFRAMES  — scm__[effect]--[color/variant]
+   ──────────────────────────────────────────────────────────────── */
+
+/* ── Glow pulses ─────────────────────────────────────────────── */
+@keyframes scm__glow--cyan {
+  0%, 100% { box-shadow: 0 0 8px #00F2FF60, 0 0 16px #00F2FF30; }
+  50%       { box-shadow: 0 0 16px #00F2FF,  0 0 32px #00F2FF60; }
+}
+
+@keyframes scm__glow--orange {
+  0%, 100% { box-shadow: 0 0 8px #FF8C0060, 0 0 16px #FF8C0030; }
+  50%       { box-shadow: 0 0 16px #FF8C00,  0 0 32px #FF8C0060; }
+}
+
+/* ── Opacity pulses ──────────────────────────────────────────── */
+@keyframes scm__pulse--cyan {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+
+@keyframes scm__pulse--orange {
+  0%, 100% { opacity: 0.9; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.85); }
+}
+
+@keyframes scm__pulse--purple {
+  0%, 100% { opacity: 1;   box-shadow: 0 0 8px #9B59B6, 0 0 16px #9B59B660; }
+  50%       { opacity: 0.5; box-shadow: 0 0 4px #9B59B6; }
+}
+
+/* ── Star field ──────────────────────────────────────────────── */
+@keyframes scm-star__dot--twinkle {
+  0%, 100% { opacity: 0.3; }
+  50%       { opacity: 1; }
+}
+
+/* ── Floating text (ore amount pop) ─────────────────────────── */
+@keyframes scm-text__float--up {
+  0%   { transform: translateY(0);    opacity: 1; }
+  100% { transform: translateY(-80px); opacity: 0; }
+}
+
+/* ── Mining robot ────────────────────────────────────────────── */
+@keyframes scm-robot__body--drilling {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(4px); }
+}
+
+/* ── Drone mechanics ─────────────────────────────────────────── */
+@keyframes scm-drone__rotor--spin {
+  from { transform: rotate(0deg)   scaleX(1.8); opacity: 0.5; }
+  to   { transform: rotate(360deg) scaleX(1.8); opacity: 0.5; }
+}
+
+@keyframes scm-drone__bit--spin {
+  from { transform: translateX(-50%) rotate(0deg); }
+  to   { transform: translateX(-50%) rotate(360deg); }
+}
+
+/* Drill bit without the translateX (used on Excavator) */
+@keyframes scm-drone__bit--spin-raw {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes scm-drone__cargo--glow {
+  0%, 100% { box-shadow: 0 0 6px  #FFB34780, 0 2px 8px  #FFB34740; background: #FFB34760; }
+  50%       { box-shadow: 0 0 14px #FFB347,   0 2px 16px #FFB34780; background: #FFB347A0; }
+}
+
+/* ── Propeller variants (kept for optional CSS-only fallback) ── */
+@keyframes scm-drone__prop--cw  {
+  from { transform: scaleX(1);  } 50% { transform: scaleX(-1); } to { transform: scaleX(1);  }
+}
+@keyframes scm-drone__prop--ccw {
+  from { transform: scaleX(-1); } 50% { transform: scaleX(1);  } to { transform: scaleX(-1); }
+}
+
+/* ── Navigation ──────────────────────────────────────────────── */
+@keyframes scm-nav__item--glow {
+  0%, 100% { box-shadow: inset 3px 0 0 #00F2FF, 0 0 8px  #00F2FF20; }
+  50%       { box-shadow: inset 3px 0 0 #00F2FF, 0 0 16px #00F2FF40; }
+}
+
+/* ── Scan line (HUD / Auth overlay) ─────────────────────────── */
+@keyframes scm-scan__line--move {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(100%);  }
+}
+
+@keyframes scm-scan__beam--pulse {
+  0%   { opacity: 0.8; height: 0;    }
+  60%  { opacity: 0.5; height: 40px; }
+  100% { opacity: 0;   height: 40px; }
+}
+
+/* ── CSS-only drone paths (reference fallback — motion handled
+      by Framer Motion in DroneFleet; kept for documentation) ── */
+@keyframes scm-drone--scout-a {
+  0%   { transform: translate(-50px,  0px)  rotate(-8deg); }
+  18%  { transform: translate( 30px,-20px)  rotate( 7deg); }
+  42%  { transform: translate(105px,  10px) rotate(14deg); }
+  60%  { transform: translate( 55px,-15px)  rotate(-4deg); }
+  80%  { transform: translate(-15px,   8px) rotate(-11deg);}
+  100% { transform: translate(-50px,  0px)  rotate(-8deg); }
+}
+@keyframes scm-drone--scout-b {
+  0%   { transform: translate( 75px,  0px)  rotate(10deg); }
+  20%  { transform: translate(-10px,-18px)  rotate(-6deg); }
+  45%  { transform: translate(-65px,   8px) rotate(-14deg);}
+  65%  { transform: translate( 20px,-12px)  rotate( 5deg); }
+  82%  { transform: translate( 60px,  10px) rotate( 8deg); }
+  100% { transform: translate( 75px,  0px)  rotate(10deg); }
+}
+@keyframes scm-drone--excavator {
+  0%   { transform: translate( 42px,   0px) rotate(  0deg); }
+  25%  { transform: translate(  8px, -32px) rotate(-10deg); }
+  50%  { transform: translate(-42px,   0px) rotate(  0deg); }
+  75%  { transform: translate(  8px,  32px) rotate( 10deg); }
+  100% { transform: translate( 42px,   0px) rotate(  0deg); }
+}
+@keyframes scm-drone--hauler {
+  0%   { transform: translate(  0px,   0px) rotate(  0deg); }
+  5%   { transform: translate(  3px, -10px) rotate(  2deg); }
+  30%  { transform: translate(  3px, -90px) rotate(  0deg); }
+  52%  { transform: translate(  0px, -90px) rotate(  0deg); }
+  78%  { transform: translate( -2px,   0px) rotate( -1deg); }
+  92%  { transform: translate(  0px,   5px) rotate(  0deg); }
+  100% { transform: translate(  0px,   0px) rotate(  0deg); }
+}
+@keyframes scm-drone--patrol {
+  0%   { transform: translate(-80px, 0) rotate(  0deg); }
+  48%  { transform: translate(140px, 0) rotate(  0deg); }
+  52%  { transform: translate(140px, 0) rotate(180deg); }
+  100% { transform: translate(-80px, 0) rotate(180deg); }
+}
+@keyframes scm-drone--deepprobe {
+  0%   { transform: translate( 0px,  0px) rotate( 0deg); }
+  20%  { transform: translate( 9px, -7px) rotate( 4deg); }
+  40%  { transform: translate(-5px,  4px) rotate(-3deg); }
+  60%  { transform: translate(11px, -3px) rotate( 6deg); }
+  80%  { transform: translate(-8px,  6px) rotate(-4deg); }
+  100% { transform: translate( 0px,  0px) rotate( 0deg); }
+}
+
+
+/* ────────────────────────────────────────────────────────────────
+   4. UTILITY CLASSES  — .scm-[block]__[element]--[modifier]
+   ──────────────────────────────────────────────────────────────── */
+
+/* ── scm-layout (root game container) ───────────────────────── */
+.scm-layout {
+  height: 100%;
+  background: var(--scm-color--bg-deep);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.scm-layout__scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.scm-layout__header {
+  flex-shrink: 0;
+  background: var(--scm-color--bg-surface);
+  border-bottom: 1px solid rgba(0,242,255,0.12);
+  padding: 12px 16px 10px;
+}
+
+/* ── scm-nav (bottom / sidebar navigation) ───────────────────── */
+.scm-nav__item {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.scm-nav__item--active {
+  color: var(--scm-color--cyan);
+  background: rgba(0,242,255,0.08);
+  border-left: 3px solid var(--scm-color--cyan);
+  animation: scm-nav__item--glow 2s ease-in-out infinite;
+}
+.scm-nav__item--inactive {
+  color: var(--scm-color--white-muted);
+  border-left: 3px solid transparent;
+}
+
+/* ── scm-card (generic content card) ────────────────────────── */
+.scm-card {
+  border-radius: var(--scm-radius--card);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.09);
+  padding: 14px;
+  margin-bottom: 10px;
+}
+.scm-card--cyan {
+  background: rgba(0,242,255,0.04);
+  border-color: rgba(0,242,255,0.18);
+}
+.scm-card--orange {
+  background: rgba(255,140,0,0.06);
+  border-color: rgba(255,140,0,0.2);
+}
+.scm-card--gold {
+  background: rgba(255,215,0,0.04);
+  border-color: rgba(255,215,0,0.35);
+}
+.scm-card--purple {
+  background: rgba(155,89,182,0.06);
+  border-color: rgba(155,89,182,0.2);
+}
+
+/* ── scm-badge ───────────────────────────────────────────────── */
+.scm-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: var(--scm-radius--badge);
+  font-family: var(--scm-font--display);
+  font-size: 8px;
+  letter-spacing: 0.06em;
+}
+.scm-badge--best-value {
+  background: linear-gradient(135deg, var(--scm-color--gold), var(--scm-color--orange));
+  color: #000;
+  font-weight: 700;
+}
+.scm-badge--boost {
+  background: rgba(255,140,0,0.12);
+  border: 1px solid rgba(255,140,0,0.35);
+  color: var(--scm-color--orange);
+}
+.scm-badge--cosmetic {
+  background: rgba(155,89,182,0.12);
+  border: 1px solid rgba(155,89,182,0.35);
+  color: var(--scm-color--purple);
+}
+.scm-badge--permanent {
+  background: rgba(155,89,182,0.1);
+  border: 1px solid rgba(155,89,182,0.25);
+  color: var(--scm-color--purple);
+}
+.scm-badge--gem {
+  background: rgba(0,242,255,0.08);
+  border: 1px solid rgba(0,242,255,0.3);
+  color: var(--scm-color--cyan);
+}
+
+/* ── scm-btn (game action buttons) ──────────────────────────── */
+.scm-btn {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: var(--scm-radius--btn);
+  border: none;
+  cursor: pointer;
+  font-family: var(--scm-font--display);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  transition: all 0.2s;
+}
+.scm-btn--primary {
+  background: linear-gradient(135deg, #22C55E, #16A34A);
+  color: var(--scm-color--white);
+  box-shadow: 0 0 18px rgba(34,197,94,0.32);
+}
+.scm-btn--gem {
+  background: linear-gradient(135deg, var(--scm-color--cyan), #00B8CC);
+  color: var(--scm-color--bg-deep);
+  box-shadow: 0 0 18px rgba(0,242,255,0.4);
+}
+.scm-btn--gold {
+  background: linear-gradient(135deg, var(--scm-color--gold), var(--scm-color--orange));
+  color: var(--scm-color--bg-deep);
+}
+.scm-btn--disabled {
+  background: rgba(0,242,255,0.08);
+  color: rgba(0,242,255,0.5);
+  cursor: default;
+  box-shadow: none;
+}
+.scm-btn--insufficient {
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.3);
+  cursor: default;
+  box-shadow: none;
+}
+.scm-btn--processing {
+  background: rgba(34,197,94,0.45);
+  color: var(--scm-color--white);
+  cursor: default;
+  box-shadow: none;
+}
+
+/* ── scm-hud (heads-up display overlay chips) ────────────────── */
+.scm-hud__chip {
+  padding: 5px 8px;
+  border-radius: 7px;
+  background: rgba(11,14,20,0.75);
+  backdrop-filter: blur(4px);
+}
+.scm-hud__chip--cyan {
+  border: 1px solid rgba(0,242,255,0.2);
+}
+.scm-hud__chip--orange {
+  border: 1px solid rgba(255,140,0,0.2);
+}
+.scm-hud__label {
+  font-family: var(--scm-font--display);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+}
+.scm-hud__label--cyan  { color: var(--scm-color--cyan);   }
+.scm-hud__label--orange{ color: var(--scm-color--orange);  }
+
+/* ── scm-resource (currency/resource display row) ────────────── */
+.scm-resource__row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: 8px;
+}
+.scm-resource__row--gold {
+  background: rgba(255,215,0,0.08);
+  border: 1px solid rgba(255,215,0,0.22);
+}
+.scm-resource__row--gem {
+  background: rgba(0,242,255,0.08);
+  border: 1px solid rgba(0,242,255,0.22);
+}
+.scm-resource__value {
+  font-family: var(--scm-font--data);
+  font-size: 12px;
+  font-weight: 600;
+}
+.scm-resource__value--gold   { color: var(--scm-color--gold);   }
+.scm-resource__value--gem    { color: var(--scm-color--cyan);   }
+.scm-resource__value--iron   { color: #C0C0C0; }
+.scm-resource__value--copper { color: #B87333; }
+.scm-resource__value--silver { color: #E8E8E8; }
+.scm-resource__value--diamond{ color: var(--scm-color--cyan);   }
+
+/* ── scm-store (store screen) ────────────────────────────────── */
+.scm-store__tab {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border-radius: var(--scm-radius--pill);
+  font-family: var(--scm-font--display);
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  line-height: 1.4;
+  transition: all 0.2s;
+}
+.scm-store__tab--active {
+  border: 1px solid var(--scm-color--cyan);
+  background: rgba(0,242,255,0.12);
+  color: var(--scm-color--cyan);
+  box-shadow: 0 0 8px rgba(0,242,255,0.3);
+}
+.scm-store__tab--inactive {
+  border: 1px solid rgba(0,242,255,0.15);
+  background: transparent;
+  color: var(--scm-color--white-muted);
+}
+.scm-store__tab--gem-inactive {
+  border: 1px solid rgba(0,242,255,0.3);
+  background: rgba(0,242,255,0.05);
+  color: rgba(0,242,255,0.67);
+}
+.scm-store__item-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+.scm-store__item-icon--equipment {
+  background: radial-gradient(circle at 35% 35%, #1A2A3A, #0A1520);
+  border: 2px solid rgba(255,140,0,0.4);
+}
+.scm-store__item-icon--gems {
+  background: radial-gradient(circle at 35% 35%, #1A3A4A, #0A1A28);
+  border: 2px solid rgba(0,242,255,0.4);
+}
+.scm-store__item-icon--subscription {
+  background: radial-gradient(circle at 35% 35%, #2A1A00, #1A1000);
+  border: 2px solid rgba(255,215,0,0.5);
+}
+.scm-store__boost-active {
+  flex: 1;
+  padding: 10px;
+  border-radius: var(--scm-radius--btn);
+  background: rgba(255,140,0,0.1);
+  border: 1px solid rgba(255,140,0,0.3);
+  text-align: center;
+}
+.scm-store__xsolla-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #FF5C00, #CC3A00);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 12px rgba(255,92,0,0.4);
+}
+
+/* ── scm-upgrade (upgrade workshop) ──────────────────────────── */
+.scm-upgrade__card {
+  border-radius: var(--scm-radius--card);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 14px;
+  margin-bottom: 10px;
+  transition: border-color 0.2s;
+}
+.scm-upgrade__card--affordable {
+  border-color: rgba(0,242,255,0.2);
+}
+.scm-upgrade__card--maxed {
+  border-color: rgba(255,215,0,0.2);
+  background: rgba(255,215,0,0.03);
+}
+.scm-upgrade__level-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.08);
+  overflow: hidden;
+}
+.scm-upgrade__level-bar__fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--scm-color--cyan), #00B8CC);
+  transition: width 0.4s ease;
+}
+.scm-upgrade__level-bar__fill--maxed {
+  background: linear-gradient(90deg, var(--scm-color--gold), var(--scm-color--orange));
+}
+
+/* ── scm-achievement (achievements log) ──────────────────────── */
+.scm-achievement__card {
+  border-radius: var(--scm-radius--card);
+  padding: 14px;
+  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.02);
+  transition: border-color 0.2s, background 0.2s;
+}
+.scm-achievement__card--completed {
+  background: rgba(0,242,255,0.04);
+  border-color: rgba(0,242,255,0.2);
+}
+.scm-achievement__card--claimed {
+  background: rgba(255,215,0,0.03);
+  border-color: rgba(255,215,0,0.15);
+}
+.scm-achievement__progress-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.08);
+  overflow: hidden;
+}
+.scm-achievement__progress-bar__fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--scm-color--cyan), #00B8CC);
+  transition: width 0.4s ease;
+}
+
+/* ── scm-robot (mining robot widget) ────────────────────────── */
+.scm-robot {
+  width: 56px;
+  height: 82px;
+  position: relative;
+}
+.scm-robot--drilling {
+  animation: scm-robot__body--drilling var(--scm-duration--fast) ease-in-out 3;
+}
+.scm-robot__eye {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--scm-color--cyan);
+  box-shadow: 0 0 6px var(--scm-color--cyan);
+  animation: scm__pulse--cyan var(--scm-duration--pulse) ease-in-out infinite;
+}
+.scm-robot__chest-glow {
+  animation: scm__glow--orange 1s ease-in-out infinite;
+}
+.scm-robot__drill-impact {
+  animation: scm__glow--orange 0.1s ease-in-out;
+}
+
+/* ── scm-drone ───────────────────────────────────────────────── */
+.scm-drone__label {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--scm-font--display);
+  font-size: 7px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.scm-drone__trail {
+  position: absolute;
+  width: 120%;
+  height: 120%;
+  border-radius: 50%;
+  filter: blur(3px);
+}
+.scm-drone__engine--scout {
+  animation: scm__pulse--cyan 0.8s ease-in-out infinite;
+}
+.scm-drone__rotor {
+  animation: scm-drone__rotor--spin 0.12s linear infinite;
+}
+.scm-drone__rotor--reverse {
+  animation: scm-drone__rotor--spin 0.12s linear infinite reverse;
+}
+.scm-drone__bit {
+  animation: scm-drone__bit--spin-raw 0.3s linear infinite;
+}
+.scm-drone__indicator--excavator {
+  animation: scm__pulse--orange 1s ease-in-out infinite;
+}
+.scm-drone__cargo--loaded {
+  animation: scm-drone__cargo--glow 1.2s ease-in-out infinite;
+}
+.scm-drone__engine--hauler {
+  animation: scm__pulse--orange 0.9s ease-in-out infinite;
+}
+.scm-drone__engine--patrol {
+  /* Staggered per dot via inline animationDelay */
+  animation: scm__pulse--cyan var(--scm-duration--pulse) ease-in-out infinite;
+}
+.scm-drone__hull--deepprobe {
+  animation: scm__pulse--purple 2s ease-in-out infinite;
+}
+.scm-drone__antenna--deepprobe {
+  animation: scm__pulse--purple 1.2s ease-in-out infinite;
+}
+.scm-drone__scanner--deepprobe {
+  animation: scm__pulse--purple 1.8s ease-in-out infinite 0.5s;
+}
+
+/* ── scm-star (background starfield) ────────────────────────── */
+.scm-star__dot {
+  position: absolute;
+  border-radius: 50%;
+  background: white;
+  opacity: 0.5;
+  animation: scm-star__dot--twinkle var(--scm-duration--pulse) ease-in-out infinite;
+}
+
+/* ── scm-depth (depth gauge strip) ──────────────────────────── */
+.scm-depth__bar-fill {
+  background: linear-gradient(to top, var(--scm-color--cyan), rgba(0,242,255,0.6));
+  border-radius: 2px;
+}
+.scm-depth__cursor {
+  position: absolute;
+  top: 0;
+  left: -8px;
+  right: -8px;
+  height: 2px;
+  background: var(--scm-color--orange);
+  box-shadow: 0 0 6px var(--scm-color--orange);
+  animation: scm__glow--orange 1.5s ease-in-out infinite;
+}
+
+/* ── scm-auth (auth gateway screen) ──────────────────────────── */
+.scm-auth__bg-scan {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.scm-auth__scan-line {
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0,242,255,0.3), transparent);
+  animation: scm-scan__line--move 4s linear infinite;
+}
+.scm-auth__cta-btn {
+  animation: scm__glow--orange 2s ease-in-out infinite;
+}
+
+/* ── scm-settings ────────────────────────────────────────────── */
+.scm-settings__section {
+  border-radius: var(--scm-radius--card);
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.07);
+  padding: 16px;
+  margin-bottom: 10px;
+}
+.scm-settings__toggle-track {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  transition: background 0.2s;
+}
+.scm-settings__toggle-track--on  { background: var(--scm-color--cyan);   }
+.scm-settings__toggle-track--off { background: rgba(255,255,255,0.12); }
+.scm-settings__toggle-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  transition: transform 0.2s;
+}
+.scm-settings__toggle-thumb--on  { transform: translateX(23px); }
+.scm-settings__toggle-thumb--off { transform: translateX(3px);  }
+
+/* ── scm-flash (toast/flash notification bar) ────────────────── */
+.scm-flash {
+  margin: 8px 14px 0;
+  padding: 9px 14px;
+  border-radius: 10px;
+  font-family: var(--scm-font--display);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-align: center;
+  flex-shrink: 0;
+}
+.scm-flash--success {
+  background: rgba(0,242,255,0.1);
+  border: 1px solid rgba(0,242,255,0.4);
+  color: var(--scm-color--cyan);
+}
+.scm-flash--error {
+  background: rgba(255,68,68,0.1);
+  border: 1px solid rgba(255,68,68,0.4);
+  color: #FF6666;
+}
+
+/* ── scm-text (typography helpers) ──────────────────────────── */
+.scm-text--display {
+  font-family: var(--scm-font--display);
+  color: var(--scm-color--white);
+  letter-spacing: 0.08em;
+}
+.scm-text--display-cyan {
+  font-family: var(--scm-font--display);
+  color: var(--scm-color--cyan);
+  letter-spacing: 0.08em;
+}
+.scm-text--display-orange {
+  font-family: var(--scm-font--display);
+  color: var(--scm-color--orange);
+  letter-spacing: 0.08em;
+}
+.scm-text--data {
+  font-family: var(--scm-font--data);
+  color: var(--scm-color--white);
+}
+.scm-text--data-muted {
+  font-family: var(--scm-font--data);
+  color: var(--scm-color--white-muted);
+}
+.scm-text--float-up {
+  position: absolute;
+  pointer-events: none;
+  font-family: var(--scm-font--display);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  animation: scm-text__float--up 1.4s ease-out forwards;
+}
