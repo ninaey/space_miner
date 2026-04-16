@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
-import { useGame } from '../../context/GameContext';
+import { saveBackendSession, useGame } from '../../context/GameContext';
+import { loginOrRegisterPlayer } from '../../lib/backendApi';
 
 /* ── Xsolla config ──────────────────────────────────────────────
    IMPORTANT: There are TWO different IDs in Xsolla — do not mix them up:
@@ -77,22 +78,23 @@ const StarField = () => {
   );
 };
 
+function decodeJwtClaims(token: string): JwtClaims {
+  const base64Url = token.split('.')[1];
+  if (!base64Url) throw new Error('Invalid login token');
+  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  const padded  = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
+  return JSON.parse(atob(padded)) as JwtClaims;
+}
+
 /* ── Auth Screen ─────────────────────────────────────────────── */
 export function AuthScreen() {
   const { dispatch } = useGame();
   const navigate     = useNavigate();
+  const [authError,   setAuthError]   = useState<string | null>(null);
+  const [authLoading, setAuthLoading] = useState(false);
 
   useEffect(() => {
-    /* ── Step 1: handle redirect back from Xsolla with ?token=xxx ──
-       After the user logs in / registers, Xsolla redirects to the
-       callbackUrl with a `token` query parameter.  We pick that up
-       here, dispatch LOGIN, then navigate into the game.
-
-       TODO (backend): exchange `token` with your API:
-         POST /api/auth/xsolla  { token }
-         → { playerName, userId, ... }
-       Then dispatch LOGIN with the real playerName.
-    ─────────────────────────────────────────────────────────────── */
+    // After login, Xsolla redirects to callbackUrl with ?token=<JWT>
     const params = new URLSearchParams(window.location.search);
     const token  = params.get('token') || params.get('access_token');
 
@@ -100,11 +102,28 @@ export function AuthScreen() {
       // Strip the token from the URL so back-navigation is clean
       window.history.replaceState({}, '', window.location.pathname);
 
-      // TODO: decode JWT or call backend to get real username
-      const playerName = 'COMMANDER';
+      void (async () => {
+        setAuthLoading(true);
+        setAuthError(null);
+        try {
+          const claims = decodeJwtClaims(token);
+          const userId = claims.sub;
+          if (!userId) throw new Error('Missing `sub` claim in login token');
 
-      dispatch({ type: 'LOGIN', playerName });
-      navigate('/game/mine', { replace: true });
+          // Xsolla JWT uses "username" as the claim name
+          const playerName = claims.username || claims.preferred_username || 'COMMANDER';
+
+          await loginOrRegisterPlayer({ userId, username: playerName, email: claims.email });
+          saveBackendSession(token, userId);
+          dispatch({ type: 'LOGIN', playerName });
+          navigate('/game/mine', { replace: true });
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unexpected login error';
+          setAuthError(`Login failed: ${message}`);
+        } finally {
+          setAuthLoading(false);
+        }
+      })();
       return;
     }
 
@@ -118,7 +137,8 @@ export function AuthScreen() {
          * Make sure this URL is whitelisted in Xsolla Publisher Account →
          * your Login project → Callback URLs.
          */
-        callbackUrl:     window.location.origin,
+        // Must end with /auth — whitelisted in Publisher Account → Login → Callback URLs
+        callbackUrl:     `${window.location.origin}/auth`,
         preferredLocale: XSOLLA_LOCALE,
       });
       xl.mount('xl_auth');
@@ -208,6 +228,16 @@ export function AuthScreen() {
         <div className="scm-auth__widget-wrapper">
           <div id="xl_auth" />
         </div>
+        {authLoading && (
+          <p style={{ marginTop: 12, color: '#00F2FF', fontFamily: 'Inter, sans-serif', fontSize: 12 }}>
+            Connecting to colony backend...
+          </p>
+        )}
+        {authError && (
+          <p style={{ marginTop: 12, color: '#FF6666', fontFamily: 'Inter, sans-serif', fontSize: 12 }}>
+            {authError}
+          </p>
+        )}
 
         {/* ── Footer ───────────────────────────────────────────── */}
         <div className="scm-auth__footer">
