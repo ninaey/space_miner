@@ -10,6 +10,27 @@ import (
 	"time"
 )
 
+// localizedField handles Xsolla's inconsistent JSON: sometimes a localized
+// map like {"en": "Sword"}, sometimes a plain string like "Sword".
+type localizedField map[string]string
+
+func (lf *localizedField) UnmarshalJSON(data []byte) error {
+	// Try map first
+	var m map[string]string
+	if err := json.Unmarshal(data, &m); err == nil {
+		*lf = m
+		return nil
+	}
+	// Fall back to plain string
+	var s string
+	if err := json.Unmarshal(data, &s); err == nil {
+		*lf = map[string]string{"en": s}
+		return nil
+	}
+	*lf = map[string]string{}
+	return nil
+}
+
 // CatalogItem is the unified shape returned to the frontend.
 // It merges data from Xsolla virtual items and VC packages
 // with game-specific metadata from the local database.
@@ -39,8 +60,8 @@ type xsollaVirtualItemsResponse struct {
 
 type xsollaVirtualItem struct {
 	SKU         string                 `json:"sku"`
-	Name        map[string]string      `json:"name"`
-	Description map[string]string      `json:"description"`
+	Name        localizedField         `json:"name"`
+	Description localizedField         `json:"description"`
 	ImageURL    string                 `json:"image_url"`
 	IsFree      bool                   `json:"is_free"`
 	Groups      []xsollaGroup          `json:"groups"`
@@ -87,13 +108,13 @@ type xsollaVCPackagesResponse struct {
 }
 
 type xsollaVCPkg struct {
-	SKU         string            `json:"sku"`
-	Name        map[string]string `json:"name"`
-	Description map[string]string `json:"description"`
-	ImageURL    string            `json:"image_url"`
-	Price       *xsollaPrice      `json:"price"`
+	SKU         string         `json:"sku"`
+	Name        localizedField `json:"name"`
+	Description localizedField `json:"description"`
+	ImageURL    string         `json:"image_url"`
+	Price       *xsollaPrice   `json:"price"`
 	Content     []xsollaVCContent `json:"content"`
-	IsFree      bool              `json:"is_free"`
+	IsFree      bool           `json:"is_free"`
 }
 
 type xsollaVCContent struct {
