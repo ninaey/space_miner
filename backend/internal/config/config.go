@@ -14,6 +14,7 @@ type Config struct {
 	XsollaCatalogURL    string
 	XsollaWebhookSecret string
 	AllowedOrigins      string
+	StaticDir           string
 }
 
 func Load() Config {
@@ -26,6 +27,7 @@ func Load() Config {
 		XsollaCatalogURL:    os.Getenv("XSOLLA_CATALOG_URL"),
 		XsollaWebhookSecret: os.Getenv("XSOLLA_WEBHOOK_SECRET"),
 		AllowedOrigins:      getEnv("ALLOWED_ORIGINS", "*"),
+		StaticDir:           os.Getenv("STATIC_DIR"),
 	}
 
 	if cfg.XsollaJWKSURL == "" {

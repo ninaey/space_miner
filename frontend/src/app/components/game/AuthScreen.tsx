@@ -1,34 +1,35 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
-import { saveBackendSession, useGame } from '../../context/GameContext';
-import { loginOrRegisterPlayer } from '../../lib/backendApi';
+import { useGame } from '../../context/GameContext';
 
 /* ── Xsolla config ──────────────────────────────────────────────
-   Replace XSOLLA_PROJECT_ID with your real project ID from the
-   Xsolla Publisher Account → Login → Settings page.
-   callbackUrl must also be whitelisted in the same settings panel.
-   ──────────────────────────────────────────────────────────────── */
-const XSOLLA_PROJECT_ID  = '4e609fab-2ce3-4711-a2a6-bf46d1f6f775';
-const XSOLLA_SDK_URL     = 'https://login-sdk.xsolla.com/latest/';
-const XSOLLA_LOCALE      = 'en_XX';
+   IMPORTANT: There are TWO different IDs in Xsolla — do not mix them up:
+   
+   1. Numeric Project ID (e.g. 304856) — used for Store/Pay Station API calls
+   2. Login Project UUID — used ONLY for the Login Widget below
+      Find it: Publisher Account → Players → Login → your project → Copy ID
+      It looks like: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 
+   The Widget MUST use the Login Project UUID (option 2).
+   callbackUrl must be whitelisted in Login project → Callback URLs.
+   ──────────────────────────────────────────────────────────────── */
+// ⚠️  This must be the Login Project UUID (not the numeric project ID 304856).
+// Find it: Publisher Account → Players → Login → your project → Copy ID (the UUID).
+const XSOLLA_LOGIN_PROJECT_ID = '4e609fab-2ce3-4711-a2a6-bf46d1f6f775';
+const XSOLLA_SDK_URL          = 'https://login-sdk.xsolla.com/latest/';
+const XSOLLA_LOCALE           = 'en_US';
+
+// Xsolla JWT payload claims — see https://developers.xsolla.com/api/login/#jwt-structure
 type JwtClaims = {
-  sub?: string;
+  sub?: string;       // User ID (UUID) — always present
+  username?: string;  // Username — Xsolla's standard claim name
+  email?: string;     // Email address
+  // NOTE: Xsolla uses "username", not "preferred_username"
+  // preferred_username is kept below only as a legacy fallback
   preferred_username?: string;
-  username?: string;
-  name?: string;
-  email?: string;
 };
 
-function decodeJwtClaims(token: string): JwtClaims {
-  const base64Url = token.split('.')[1];
-  if (!base64Url) throw new Error('Invalid login token');
-  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-  const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
-  const payload = atob(padded);
-  return JSON.parse(payload) as JwtClaims;
-}
 
 /* Extend Window so TypeScript knows about the Xsolla global */
 declare global {
@@ -80,8 +81,6 @@ const StarField = () => {
 export function AuthScreen() {
   const { dispatch } = useGame();
   const navigate     = useNavigate();
-  const [authError, setAuthError] = useState<string | null>(null);
-  const [authLoading, setAuthLoading] = useState(false);
 
   useEffect(() => {
     /* ── Step 1: handle redirect back from Xsolla with ?token=xxx ──
@@ -101,42 +100,18 @@ export function AuthScreen() {
       // Strip the token from the URL so back-navigation is clean
       window.history.replaceState({}, '', window.location.pathname);
 
-      void (async () => {
-        setAuthLoading(true);
-        setAuthError(null);
-        try {
-          const claims = decodeJwtClaims(token);
-          const userId = claims.sub;
-          if (!userId) {
-            throw new Error('Missing `sub` claim in login token');
-          }
+      // TODO: decode JWT or call backend to get real username
+      const playerName = 'COMMANDER';
 
-          const playerName = claims.preferred_username || claims.username || claims.name || 'COMMANDER';
-          const email = claims.email;
-
-          await loginOrRegisterPlayer({
-            userId,
-            username: playerName,
-            email,
-          });
-          saveBackendSession(token, userId);
-          dispatch({ type: 'LOGIN', playerName });
-          navigate('/game/mine', { replace: true });
-        } catch (error) {
-          const message = error instanceof Error ? error.message : 'Unexpected login error';
-          setAuthError(`Unable to connect to backend: ${message}`);
-        } finally {
-          setAuthLoading(false);
-        }
-      })();
-
+      dispatch({ type: 'LOGIN', playerName });
+      navigate('/game/mine', { replace: true });
       return;
     }
 
     /* ── Step 2: load the Xsolla Login SDK and mount the widget ── */
     function mountWidget() {
       const xl = new window.XsollaLogin.Widget({
-        projectId:       XSOLLA_PROJECT_ID,
+        projectId:       XSOLLA_LOGIN_PROJECT_ID,
         /*
          * Set callbackUrl to your app's root (or a dedicated /auth/callback
          * route) so Xsolla redirects back here after successful auth.
@@ -181,6 +156,32 @@ export function AuthScreen() {
       <div className="scm-auth__planet--top-right"  aria-hidden="true" />
       <div className="scm-auth__planet--bottom-left" aria-hidden="true" />
 
+      {/* Back to landing */}
+      <motion.button
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.4 }}
+        onClick={() => navigate('/')}
+        className="flex items-center gap-2 px-4 py-2 rounded-xl mb-4"
+        style={{
+          position: 'relative',
+          zIndex: 10,
+          background: 'rgba(255,255,255,0.04)',
+          border: '1px solid rgba(0,242,255,0.15)',
+          color: 'rgba(255,255,255,0.40)',
+          fontFamily: 'Orbitron, sans-serif',
+          fontSize: 9,
+          letterSpacing: '0.12em',
+          cursor: 'pointer',
+          alignSelf: 'flex-start',
+        }}
+      >
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+        <span>BACK TO BASE</span>
+      </motion.button>
+
       {/* Main modal card */}
       <motion.div
         className="scm-auth__container"
@@ -207,16 +208,6 @@ export function AuthScreen() {
         <div className="scm-auth__widget-wrapper">
           <div id="xl_auth" />
         </div>
-        {authLoading && (
-          <p style={{ marginTop: 12, color: '#00F2FF', fontFamily: 'Inter, sans-serif', fontSize: 12 }}>
-            Connecting to colony backend...
-          </p>
-        )}
-        {authError && (
-          <p style={{ marginTop: 12, color: '#FF6666', fontFamily: 'Inter, sans-serif', fontSize: 12 }}>
-            {authError}
-          </p>
-        )}
 
         {/* ── Footer ───────────────────────────────────────────── */}
         <div className="scm-auth__footer">

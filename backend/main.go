@@ -4,7 +4,10 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 	"os/signal"
+	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
@@ -70,6 +73,8 @@ func main() {
 		r.Post("/store/buy-gem-item", storeHandler.BuyGemItem)
 	})
 
+	configureStaticHosting(router, cfg.StaticDir)
+
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,
 		Handler:           router,
@@ -103,4 +108,46 @@ func requireJWT(validator *handlers.JWTValidator) func(http.Handler) http.Handle
 		}
 		return validator.AuthMiddleware(next)
 	}
+}
+
+func configureStaticHosting(router chi.Router, staticDir string) {
+	if staticDir == "" {
+		return
+	}
+
+	info, err := os.Stat(staticDir)
+	if err != nil || !info.IsDir() {
+		log.Printf("static frontend disabled: invalid STATIC_DIR %q", staticDir)
+		return
+	}
+
+	fileServer := http.FileServer(http.Dir(staticDir))
+	apiPrefixes := []string{"/auth", "/game", "/store", "/healthz"}
+
+	router.NotFound(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet && r.Method != http.MethodHead {
+			http.NotFound(w, r)
+			return
+		}
+
+		for _, prefix := range apiPrefixes {
+			if r.URL.Path == prefix || strings.HasPrefix(r.URL.Path, prefix+"/") {
+				http.NotFound(w, r)
+				return
+			}
+		}
+
+		requestedPath := strings.TrimPrefix(filepath.Clean(r.URL.Path), string(filepath.Separator))
+		if requestedPath != "" && requestedPath != "." {
+			fullPath := filepath.Join(staticDir, requestedPath)
+			if pathInfo, err := os.Stat(fullPath); err == nil && !pathInfo.IsDir() {
+				fileServer.ServeHTTP(w, r)
+				return
+			}
+		}
+
+		http.ServeFile(w, r, filepath.Join(staticDir, "index.html"))
+	})
+
+	log.Printf("serving static frontend from %s", staticDir)
 }
