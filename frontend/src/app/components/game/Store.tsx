@@ -41,6 +41,31 @@ function itemIcon(item: CatalogItem): string {
   return ICON_MAP[item.sku] || '📦';
 }
 
+// DB categories → UI categories (DB uses granular names like 'drill', 'storage')
+const CATEGORY_MAP: Record<string, string> = {
+  drill: 'equipment', storage: 'equipment',
+  booster: 'boost', gems: 'gems', cosmetic: 'cosmetic',
+};
+function normalizeCategory(raw: string): string {
+  return CATEGORY_MAP[raw] || raw;
+}
+
+// Fallback descriptions keyed by SKU (DB store_catalog has no description column)
+const DESCRIPTION_MAP: Record<string, string> = {
+  super_drill: 'Increases mining speed by 3x forever.',
+  inventory_expander: 'Double your mineral storage capacity.',
+  gem_pack_s: '100 Gems for your colony.',
+  gem_pack_m: '500 Gems + 50 bonus gems!',
+  gem_pack_l: '1,200 Gems + 300 bonus. Best Value!',
+  turbo_drill_boost: 'Triples click power for the next 100 manual taps.',
+  depth_dive: 'Skip ahead +250m instantly.',
+  drone_overclock: 'All drones mine at 4x speed for 60 seconds.',
+  mega_mine_burst: 'Mine 500x your click power in one explosion.',
+  auto_sell_module: 'Auto-sells minerals every 30s for 5 minutes.',
+  storage_purge: 'Sell everything at 2x market value instantly.',
+  neon_commander_frame: 'Exclusive Neon Commander avatar frame.',
+};
+
 export function Store() {
   const { state, dispatch } = useGame();
   const [activeTab, setActiveTab] = useState('FEATURED');
@@ -65,18 +90,22 @@ export function Store() {
         setCatalogSource(res.source);
 
         if (res.source === 'xsolla') {
-          setRealItems(res.items.filter((i: CatalogItem) => i.currency === 'real'));
-          setGemItems(res.items.filter((i: CatalogItem) => i.currency === 'gem'));
+          const normalized = res.items.map((i: CatalogItem) => ({
+            ...i,
+            category: normalizeCategory(i.category),
+            description: i.description || DESCRIPTION_MAP[i.sku] || '',
+          }));
+          setRealItems(normalized.filter((i: CatalogItem) => i.currency === 'real'));
+          setGemItems(normalized.filter((i: CatalogItem) => i.currency === 'gem'));
         } else {
-          // DB fallback — map the DB StoreItem shape to CatalogItem
           const mapped: CatalogItem[] = (res.items as any[]).map((i: any) => ({
             sku: i.sku,
             name: i.name,
-            description: '',
-            category: i.category,
+            description: DESCRIPTION_MAP[i.sku] || '',
+            category: normalizeCategory(i.category),
             currency: i.currency_type,
             price: i.base_price,
-            price_str: i.currency_type === 'real' ? `$${i.base_price.toFixed(2)}` : `${Math.floor(i.base_price)} Gems`,
+            price_str: i.currency_type === 'real' ? `$${Number(i.base_price).toFixed(2)}` : `${Math.floor(i.base_price)} Gems`,
             gems_granted: i.gems_granted || 0,
             featured: i.featured,
             one_time: i.one_time_purchase,
