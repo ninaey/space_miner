@@ -200,12 +200,21 @@
   position: relative;
   z-index: 1;
   padding: 0;               /* widget has its own internal padding */
+  overflow: hidden;
 }
 
 /* The element Xsolla mounts into */
 #xl_auth {
   width: 100%;
-  min-height: 460px;
+  min-height: 0;
+  height: auto;
+}
+
+#xl_auth iframe {
+  display: block;
+  width: 100%;
+  min-height: 420px;
+  border: 0;
 }
 
 
@@ -710,6 +719,11 @@
   .scm-auth__title {
     font-size: 19px;
   }
+
+  /* Reduce widget vertical footprint on small phones */
+  #xl_auth iframe {
+    min-height: 360px;
+  }
 }
 
 /* Tablet & desktop — vertically centre the card */
@@ -723,6 +737,10 @@
   .scm-auth__container {
     margin-top: 0;
     max-width: 420px;
+  }
+
+  #xl_auth iframe {
+    min-height: 420px;
   }
 }
 
