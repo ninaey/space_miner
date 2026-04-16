@@ -122,19 +122,15 @@ func configureStaticHosting(router chi.Router, staticDir string) {
 	}
 
 	fileServer := http.FileServer(http.Dir(staticDir))
-	apiPrefixes := []string{"/auth", "/game", "/store", "/healthz"}
 
+	// Chi handles all registered API routes (POST /auth/login, GET /game/state, etc.)
+	// BEFORE NotFound is called, so no prefix blocklist is needed here.
+	// This NotFound handler serves the React SPA for any unmatched GET request
+	// (e.g. /auth, /game/mine, /game/upgrades) so client-side routing works correctly.
 	router.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet && r.Method != http.MethodHead {
 			http.NotFound(w, r)
 			return
-		}
-
-		for _, prefix := range apiPrefixes {
-			if r.URL.Path == prefix || strings.HasPrefix(r.URL.Path, prefix+"/") {
-				http.NotFound(w, r)
-				return
-			}
 		}
 
 		requestedPath := strings.TrimPrefix(filepath.Clean(r.URL.Path), string(filepath.Separator))
