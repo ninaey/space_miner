@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	_ "embed"
 	"log"
 	"net/http"
 	"os"
@@ -21,6 +22,9 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+//go:embed migrations/init.up.sql
+var migrationSQL string
+
 func main() {
 	cfg := config.Load()
 
@@ -30,6 +34,8 @@ func main() {
 		log.Fatalf("db connection error: %v", err)
 	}
 	defer dbPool.Close()
+
+	runMigrations(ctx, dbPool)
 
 	repo := store.NewPostgresStore(dbPool)
 	gameService := game.NewService(repo)
@@ -97,6 +103,23 @@ func main() {
 	if err := srv.Shutdown(shutdownCtx); err != nil {
 		log.Printf("graceful shutdown error: %v", err)
 	}
+}
+
+func runMigrations(ctx context.Context, pool *pgxpool.Pool) {
+	var exists bool
+	err := pool.QueryRow(ctx,
+		"SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'players')").Scan(&exists)
+	if err != nil {
+		log.Fatalf("migration check failed: %v", err)
+	}
+	if exists {
+		log.Println("database tables already exist, skipping migration")
+		return
+	}
+	if _, err := pool.Exec(ctx, migrationSQL); err != nil {
+		log.Fatalf("migration failed: %v", err)
+	}
+	log.Println("database migration completed successfully")
 }
 
 func requireJWT(validator *handlers.JWTValidator) func(http.Handler) http.Handler {
