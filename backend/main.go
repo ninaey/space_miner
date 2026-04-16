@@ -41,7 +41,7 @@ func main() {
 	gameService := game.NewService(repo)
 	authHandler := handlers.NewAuthHandler(gameService)
 	gameHandler := handlers.NewGameHandler(gameService)
-	storeHandler := handlers.NewStoreHandler(gameService, cfg.XsollaCatalogURL, cfg.XsollaWebhookSecret)
+	storeHandler := handlers.NewStoreHandler(gameService, cfg.XsollaCatalogURL, cfg.XsollaWebhookSecret, cfg.XsollaProjectID)
 
 	jwtValidator, err := handlers.NewJWTValidator(cfg.XsollaJWKSURL, cfg.XsollaIssuer, cfg.XsollaAudience)
 	if err != nil {

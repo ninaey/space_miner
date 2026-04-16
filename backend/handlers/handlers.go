@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -25,10 +26,11 @@ type GameHandler struct {
 }
 
 type StoreHandler struct {
-	service       *game.Service
-	catalogURL    string
-	webhookSecret string
-	httpClient    *http.Client
+	service        *game.Service
+	catalogURL     string
+	webhookSecret  string
+	httpClient     *http.Client
+	catalogFetcher *XsollaCatalogFetcher
 }
 
 func NewAuthHandler(service *game.Service) *AuthHandler {
@@ -39,11 +41,12 @@ func NewGameHandler(service *game.Service) *GameHandler {
 	return &GameHandler{service: service}
 }
 
-func NewStoreHandler(service *game.Service, catalogURL, webhookSecret string) *StoreHandler {
+func NewStoreHandler(service *game.Service, catalogURL, webhookSecret string, projectID int) *StoreHandler {
 	return &StoreHandler{
-		service:       service,
-		catalogURL:    catalogURL,
-		webhookSecret: webhookSecret,
+		service:        service,
+		catalogURL:     catalogURL,
+		webhookSecret:  webhookSecret,
+		catalogFetcher: NewXsollaCatalogFetcher(projectID),
 		httpClient: &http.Client{
 			Timeout: 10 * time.Second,
 		},
@@ -143,26 +146,31 @@ func (h *GameHandler) Sync(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *StoreHandler) GetCatalog(w http.ResponseWriter, r *http.Request) {
-	if h.catalogURL != "" {
-		req, err := http.NewRequestWithContext(r.Context(), http.MethodGet, h.catalogURL, nil)
-		if err == nil {
-			resp, err := h.httpClient.Do(req)
-			if err == nil && resp.StatusCode == http.StatusOK {
-				defer resp.Body.Close()
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusOK)
-				_, _ = io.Copy(w, resp.Body)
-				return
-			}
+	// Try Xsolla Catalog API first (with 5-min cache)
+	if h.catalogFetcher != nil {
+		xsollaItems, err := h.catalogFetcher.FetchCatalog(r.Context())
+		if err == nil && len(xsollaItems) > 0 {
+			writeJSON(w, http.StatusOK, map[string]any{
+				"source": "xsolla",
+				"items":  xsollaItems,
+			})
+			return
+		}
+		if err != nil {
+			log.Printf("xsolla catalog fetch failed, falling back to DB: %v", err)
 		}
 	}
 
+	// Fallback: serve from local database
 	items, err := h.service.GetCatalog(r.Context())
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"items": items})
+	writeJSON(w, http.StatusOK, map[string]any{
+		"source": "database",
+		"items":  items,
+	})
 }
 
 func (h *StoreHandler) BuyGemItem(w http.ResponseWriter, r *http.Request) {

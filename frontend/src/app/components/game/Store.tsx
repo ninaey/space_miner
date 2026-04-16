@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useGame, STORE_ITEMS, GEM_ITEMS } from '../../context/GameContext';
+import { useGame, STORE_ITEMS as FALLBACK_STORE, GEM_ITEMS as FALLBACK_GEM } from '../../context/GameContext';
+import { fetchStoreCatalog, buyGemItem, type CatalogItem } from '../../lib/backendApi';
+import { getBackendSession } from '../../context/GameContext';
 
 const formatNum = (n: number): string => {
   if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
@@ -10,7 +12,6 @@ const formatNum = (n: number): string => {
 
 const TABS = ['FEATURED', 'EQUIPMENT', 'GEM SHOP', 'GEM PACKS'];
 
-// Countdown display for active boosts
 function BoostTimer({ endsAt }: { endsAt: number }) {
   const [remaining, setRemaining] = useState(() => Math.max(0, Math.ceil((endsAt - Date.now()) / 1000)));
   useEffect(() => {
@@ -23,11 +24,22 @@ function BoostTimer({ endsAt }: { endsAt: number }) {
   return <span style={{ color: '#00F2FF', fontFamily: 'Inter, sans-serif' }}>{m > 0 ? `${m}m ` : ''}{s}s</span>;
 }
 
-// Category badge colour
 const CATEGORY_STYLE: Record<string, { bg: string; border: string; color: string; label: string }> = {
   boost:     { bg: 'rgba(255,140,0,0.12)',   border: 'rgba(255,140,0,0.35)',   color: '#FF8C00', label: 'BOOST'     },
   cosmetic:  { bg: 'rgba(155,89,182,0.12)',  border: 'rgba(155,89,182,0.35)', color: '#9B59B6', label: 'COSMETIC'  },
 };
+
+const ICON_MAP: Record<string, string> = {
+  super_drill: '🔩', inventory_expander: '📦',
+  gem_pack_s: '💎', gem_pack_m: '💎', gem_pack_l: '💎',
+  turbo_drill_boost: '⚡', depth_dive: '🌀', drone_overclock: '🚀',
+  mega_mine_burst: '💥', auto_sell_module: '🤖', storage_purge: '💰',
+  neon_commander_frame: '🎖️', vip: '⭐',
+};
+
+function itemIcon(item: CatalogItem): string {
+  return ICON_MAP[item.sku] || '📦';
+}
 
 export function Store() {
   const { state, dispatch } = useGame();
@@ -37,54 +49,135 @@ export function Store() {
   const [gemActivated, setGemActivated] = useState<string | null>(null);
   const [flashMsg, setFlashMsg] = useState<{ text: string; color: string } | null>(null);
 
-  // ── USD item purchase ──────────────────────────────────────
-  const handlePurchase = (item: typeof STORE_ITEMS[0]) => {
+  const [catalogSource, setCatalogSource] = useState<string>('local');
+  const [realItems, setRealItems] = useState<CatalogItem[]>([]);
+  const [gemItems, setGemItems] = useState<CatalogItem[]>([]);
+  const [catalogLoading, setCatalogLoading] = useState(true);
+
+  // Fetch catalog from backend (which tries Xsolla first, then DB fallback)
+  useEffect(() => {
+    let cancelled = false;
+    setCatalogLoading(true);
+
+    fetchStoreCatalog()
+      .then((res) => {
+        if (cancelled) return;
+        setCatalogSource(res.source);
+
+        if (res.source === 'xsolla') {
+          setRealItems(res.items.filter((i: CatalogItem) => i.currency === 'real'));
+          setGemItems(res.items.filter((i: CatalogItem) => i.currency === 'gem'));
+        } else {
+          // DB fallback — map the DB StoreItem shape to CatalogItem
+          const mapped: CatalogItem[] = (res.items as any[]).map((i: any) => ({
+            sku: i.sku,
+            name: i.name,
+            description: '',
+            category: i.category,
+            currency: i.currency_type,
+            price: i.base_price,
+            price_str: i.currency_type === 'real' ? `$${i.base_price.toFixed(2)}` : `${Math.floor(i.base_price)} Gems`,
+            gems_granted: i.gems_granted || 0,
+            featured: i.featured,
+            one_time: i.one_time_purchase,
+            effect_type: i.effect_type || undefined,
+            effect_value: i.effect_value || undefined,
+            effect_duration: i.effect_duration_sec || undefined,
+          }));
+          setRealItems(mapped.filter(i => i.currency === 'real'));
+          setGemItems(mapped.filter(i => i.currency === 'gem'));
+        }
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error('Catalog fetch failed, using local fallback:', err);
+        setCatalogSource('local');
+      })
+      .finally(() => { if (!cancelled) setCatalogLoading(false); });
+
+    return () => { cancelled = true; };
+  }, []);
+
+  // When catalog source is local (fallback hardcoded), map the existing arrays
+  const effectiveRealItems: CatalogItem[] = catalogSource === 'local'
+    ? FALLBACK_STORE.map(i => ({
+        sku: i.id, name: i.name, description: i.description,
+        category: i.category, currency: 'real', price: i.price,
+        price_str: `$${i.price.toFixed(2)}`,
+        gems_granted: (i as any).gems || 0, featured: i.featured,
+        one_time: false,
+        effect_type: undefined, effect_value: undefined, effect_duration: undefined,
+      }))
+    : realItems;
+
+  const effectiveGemItems: CatalogItem[] = catalogSource === 'local'
+    ? FALLBACK_GEM.map(i => ({
+        sku: i.id, name: i.name, description: i.description,
+        category: i.category, currency: 'gem', price: i.gemCost,
+        price_str: `${i.gemCost} Gems`,
+        gems_granted: 0, featured: false,
+        one_time: i.oneTime || false,
+        effect_type: i.effect, effect_value: i.effectValue,
+        effect_duration: i.effectDuration,
+      }))
+    : gemItems;
+
+  // ── USD item purchase (placeholder for Pay Station - Phase 3)
+  const handlePurchase = (item: CatalogItem) => {
     if (purchasing) return;
-    setPurchasing(item.id);
+    setPurchasing(item.sku);
     setTimeout(() => {
-      dispatch({ type: 'PURCHASE', itemId: item.id, gems: (item as any).gems });
+      dispatch({ type: 'PURCHASE', itemId: item.sku, gems: item.gems_granted || undefined });
       setPurchasing(null);
-      setJustBought(item.id);
+      setJustBought(item.sku);
       setTimeout(() => setJustBought(null), 2500);
     }, 1200);
   };
 
-  // ── Gem item purchase ──────────────────────────────────────
-  const handleGemBuy = (item: typeof GEM_ITEMS[0]) => {
-    if (state.resources.gems < item.gemCost) {
-      setFlashMsg({ text: '❌ Not enough Gems! Buy a Gem Pack first.', color: '#FF4444' });
+  // ── Gem item purchase — calls backend API
+  const handleGemBuy = async (item: CatalogItem) => {
+    if (state.resources.gems < item.price) {
+      setFlashMsg({ text: 'Not enough Gems! Buy a Gem Pack first.', color: '#FF4444' });
       setTimeout(() => setFlashMsg(null), 2500);
       return;
     }
-    // Already owned one-time items
-    if (item.oneTime && state.gemPurchases?.includes(item.id)) {
-      setFlashMsg({ text: '✓ Already unlocked!', color: '#00F2FF' });
+    if (item.one_time && state.gemPurchases?.includes(item.sku)) {
+      setFlashMsg({ text: 'Already unlocked!', color: '#00F2FF' });
       setTimeout(() => setFlashMsg(null), 2000);
       return;
     }
-    setGemActivated(item.id);
-    setTimeout(() => {
-      dispatch({
-        type: 'SPEND_GEMS',
-        itemId: item.id,
-        gemCost: item.gemCost,
-        effect: item.effect,
-        effectValue: item.effectValue,
-        effectDuration: item.effectDuration,
-      });
-      setGemActivated(null);
-      setFlashMsg({ text: `✓ ${item.name} activated!`, color: '#00F2FF' });
-      setTimeout(() => setFlashMsg(null), 2500);
-    }, 900);
+
+    setGemActivated(item.sku);
+
+    const session = getBackendSession();
+    if (session?.token) {
+      try {
+        await buyGemItem(session.token, item.sku);
+      } catch (err) {
+        console.error('Backend gem purchase failed:', err);
+      }
+    }
+
+    dispatch({
+      type: 'SPEND_GEMS',
+      itemId: item.sku,
+      gemCost: item.price,
+      effect: item.effect_type || '',
+      effectValue: item.effect_value,
+      effectDuration: item.effect_duration,
+    });
+    setGemActivated(null);
+    setFlashMsg({ text: `${item.name} activated!`, color: '#00F2FF' });
+    setTimeout(() => setFlashMsg(null), 2500);
   };
 
-  const getItems = () => {
-    if (activeTab === 'EQUIPMENT')  return STORE_ITEMS.filter(i => i.category === 'equipment');
-    if (activeTab === 'GEM PACKS')  return STORE_ITEMS.filter(i => i.category === 'gems');
-    return STORE_ITEMS.filter(i => i.category !== 'subscription');
+  const getItems = (): CatalogItem[] => {
+    if (activeTab === 'EQUIPMENT')  return effectiveRealItems.filter(i => i.category === 'equipment');
+    if (activeTab === 'GEM PACKS')  return effectiveRealItems.filter(i => i.category === 'gems');
+    return effectiveRealItems.filter(i => i.category !== 'subscription');
   };
 
-  const featuredItems  = STORE_ITEMS.filter(i => i.featured);
+  const featuredItems  = effectiveRealItems.filter(i => i.featured);
   const activeBoosts   = (state.activeBoosts || []).filter(b => b.endsAt > Date.now());
   const isGemTab       = activeTab === 'GEM SHOP';
 
@@ -97,7 +190,7 @@ export function Store() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
           <div style={{ width: 16, height: 16, borderRadius: '50%', background: 'rgba(0,242,255,0.1)', border: '1px solid #00F2FF40', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 }}>🔒</div>
           <div style={{ fontFamily: 'Inter, sans-serif', color: '#00F2FF70', fontSize: 9, letterSpacing: '0.07em' }}>
-            COLONY REVENUE & SUPPLIES — SECURED BY XSOLLA
+            COLONY REVENUE & SUPPLIES — {catalogLoading ? 'LOADING...' : `SOURCE: ${catalogSource.toUpperCase()}`} — SECURED BY XSOLLA
           </div>
         </div>
 
@@ -201,12 +294,12 @@ export function Store() {
               <div style={{ borderRadius: 14, padding: '12px 14px', background: 'rgba(0,242,255,0.04)', border: '1px solid rgba(0,242,255,0.18)', marginBottom: 14 }}>
                 <div style={{ fontFamily: 'Orbitron, sans-serif', color: '#00F2FF', fontSize: 9, letterSpacing: '0.1em', marginBottom: 10 }}>⚡ ACTIVE BOOSTS</div>
                 {activeBoosts.map(boost => {
-                  const def = GEM_ITEMS.find(g => g.id === boost.id);
+                  const def = effectiveGemItems.find(g => g.sku === boost.id);
                   if (!def) return null;
                   return (
                     <div key={boost.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontSize: 18 }}>{def.icon}</span>
+                        <span style={{ fontSize: 18 }}>{def.image_url ? '' : itemIcon(def)}</span>
                         <span style={{ fontFamily: 'Inter, sans-serif', color: '#FFFFFF80', fontSize: 10 }}>{def.name}</span>
                       </div>
                       <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: 10, letterSpacing: '0.04em' }}>
@@ -219,16 +312,16 @@ export function Store() {
             )}
 
             {/* Gem item cards */}
-            {GEM_ITEMS.map(item => {
-              const canAffordGem = state.resources.gems >= item.gemCost;
-              const isOwned = item.oneTime && state.gemPurchases?.includes(item.id);
-              const isActivating = gemActivated === item.id;
-              const isActive = activeBoosts.some(b => b.id === item.id);
+            {effectiveGemItems.map(item => {
+              const canAffordGem = state.resources.gems >= item.price;
+              const isOwned = item.one_time && state.gemPurchases?.includes(item.sku);
+              const isActivating = gemActivated === item.sku;
+              const isActive = activeBoosts.some(b => b.id === item.sku);
               const cat = CATEGORY_STYLE[item.category] ?? CATEGORY_STYLE.boost;
 
               return (
                 <div
-                  key={item.id}
+                  key={item.sku}
                   style={{
                     borderRadius: 16,
                     background: isOwned ? 'rgba(0,242,255,0.04)' : isActive ? 'rgba(255,140,0,0.05)' : 'rgba(255,255,255,0.03)',
@@ -237,7 +330,6 @@ export function Store() {
                     marginBottom: 10,
                   }}
                 >
-                  {/* Icon + name row */}
                   <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 10 }}>
                     <div style={{
                       width: 54, height: 54, borderRadius: 14, flexShrink: 0,
@@ -246,7 +338,9 @@ export function Store() {
                       display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26,
                       boxShadow: `0 0 12px ${cat.border}`,
                     }}>
-                      {item.icon}
+                      {item.image_url
+                        ? <img src={item.image_url} alt="" style={{ width: 36, height: 36, objectFit: 'contain' }} />
+                        : itemIcon(item)}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
@@ -263,30 +357,27 @@ export function Store() {
                     </div>
                   </div>
 
-                  {/* Effect summary pills */}
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
-                    {item.effectValue ? (
+                    {item.effect_value ? (
                       <div style={{ padding: '3px 9px', borderRadius: 8, background: 'rgba(255,140,0,0.1)', border: '1px solid rgba(255,140,0,0.25)' }}>
-                        <span style={{ fontFamily: 'Inter, sans-serif', color: '#FF8C00', fontSize: 10 }}>×{item.effectValue} effect</span>
+                        <span style={{ fontFamily: 'Inter, sans-serif', color: '#FF8C00', fontSize: 10 }}>x{item.effect_value} effect</span>
                       </div>
                     ) : null}
-                    {item.effectDuration ? (
+                    {item.effect_duration ? (
                       <div style={{ padding: '3px 9px', borderRadius: 8, background: 'rgba(0,242,255,0.08)', border: '1px solid rgba(0,242,255,0.2)' }}>
                         <span style={{ fontFamily: 'Inter, sans-serif', color: '#00F2FF', fontSize: 10 }}>
-                          {item.effectDuration >= 60 ? `${item.effectDuration / 60}m` : `${item.effectDuration}s`} duration
+                          {item.effect_duration >= 60 ? `${item.effect_duration / 60}m` : `${item.effect_duration}s`} duration
                         </span>
                       </div>
                     ) : null}
-                    {item.oneTime && (
+                    {item.one_time && (
                       <div style={{ padding: '3px 9px', borderRadius: 8, background: 'rgba(155,89,182,0.1)', border: '1px solid rgba(155,89,182,0.25)' }}>
                         <span style={{ fontFamily: 'Inter, sans-serif', color: '#9B59B6', fontSize: 10 }}>permanent</span>
                       </div>
                     )}
                   </div>
 
-                  {/* Cost + Buy button */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    {/* Gem cost badge */}
                     <div style={{
                       display: 'flex', alignItems: 'center', gap: 5,
                       padding: '7px 12px', borderRadius: 10, flexShrink: 0,
@@ -295,24 +386,23 @@ export function Store() {
                     }}>
                       <span style={{ fontSize: 14 }}>💎</span>
                       <span style={{ fontFamily: 'Inter, sans-serif', color: canAffordGem ? '#00F2FF' : '#FF6666', fontSize: 15, fontWeight: 700 }}>
-                        {item.gemCost}
+                        {item.price}
                       </span>
                     </div>
 
-                    {/* Action button */}
                     {isOwned ? (
                       <div style={{ flex: 1, padding: '10px', borderRadius: 11, background: 'rgba(0,242,255,0.08)', border: '1px solid #00F2FF30', textAlign: 'center' }}>
-                        <span style={{ fontFamily: 'Orbitron, sans-serif', color: '#00F2FF80', fontSize: 10, letterSpacing: '0.06em' }}>✓ UNLOCKED</span>
+                        <span style={{ fontFamily: 'Orbitron, sans-serif', color: '#00F2FF80', fontSize: 10, letterSpacing: '0.06em' }}>UNLOCKED</span>
                       </div>
                     ) : isActive ? (
                       <div style={{ flex: 1, padding: '10px', borderRadius: 11, background: 'rgba(255,140,0,0.1)', border: '1px solid rgba(255,140,0,0.3)', textAlign: 'center' }}>
-                        <div style={{ fontFamily: 'Orbitron, sans-serif', color: '#FF8C00', fontSize: 10, letterSpacing: '0.06em' }}>⚡ ACTIVE</div>
-                        <div style={{ marginTop: 2 }}><BoostTimer endsAt={activeBoosts.find(b => b.id === item.id)!.endsAt} /></div>
+                        <div style={{ fontFamily: 'Orbitron, sans-serif', color: '#FF8C00', fontSize: 10, letterSpacing: '0.06em' }}>ACTIVE</div>
+                        <div style={{ marginTop: 2 }}><BoostTimer endsAt={activeBoosts.find(b => b.id === item.sku)!.endsAt} /></div>
                       </div>
                     ) : (
                       <button
                         onClick={() => handleGemBuy(item)}
-                        disabled={isActivating}
+                        disabled={!!isActivating}
                         style={{
                           flex: 1, padding: '10px 16px', borderRadius: 11, border: 'none', cursor: 'pointer',
                           background: isActivating
@@ -350,10 +440,14 @@ export function Store() {
                 </div>
                 <div style={{ display: 'flex', gap: 10 }}>
                   {featuredItems.map(item => {
-                    const owned = state.purchases.includes(item.id);
+                    const owned = state.purchases.includes(item.sku);
                     return (
-                      <div key={item.id} style={{ flex: 1, background: 'rgba(255,140,0,0.06)', border: '1px solid rgba(255,140,0,0.2)', borderRadius: 14, padding: '12px 10px', textAlign: 'center' }}>
-                        <div style={{ fontSize: 32, marginBottom: 6 }}>{item.icon}</div>
+                      <div key={item.sku} style={{ flex: 1, background: 'rgba(255,140,0,0.06)', border: '1px solid rgba(255,140,0,0.2)', borderRadius: 14, padding: '12px 10px', textAlign: 'center' }}>
+                        <div style={{ fontSize: 32, marginBottom: 6 }}>
+                          {item.image_url
+                            ? <img src={item.image_url} alt="" style={{ width: 32, height: 32, objectFit: 'contain' }} />
+                            : itemIcon(item)}
+                        </div>
                         <div style={{ fontFamily: 'Orbitron, sans-serif', color: '#FFFFFF', fontSize: 10, letterSpacing: '0.04em', lineHeight: '1.3', marginBottom: 5 }}>{item.name}</div>
                         <div style={{ fontFamily: 'Inter, sans-serif', color: '#FFFFFF55', fontSize: 9, lineHeight: '1.4', marginBottom: 10 }}>{item.description}</div>
                         <button
@@ -367,7 +461,7 @@ export function Store() {
                             boxShadow: owned ? 'none' : '0 0 14px rgba(34,197,94,0.35)', lineHeight: '1.4',
                           }}
                         >
-                          {owned ? '✓ OWNED' : `$${item.price.toFixed(2)}`}
+                          {owned ? 'OWNED' : item.price_str}
                         </button>
                       </div>
                     );
@@ -386,11 +480,10 @@ export function Store() {
 
             {/* Full item cards */}
             {getItems().map(item => {
-              const owned = state.purchases.includes(item.id);
-              const isProcessing = purchasing === item.id;
-              const didBuy = justBought === item.id;
-              const gemCount = (item as any).gems as number | undefined;
-              const isBestValue = (item as any).bestValue as boolean | undefined;
+              const owned = state.purchases.includes(item.sku);
+              const isProcessing = purchasing === item.sku;
+              const didBuy = justBought === item.sku;
+              const isBestValue = item.sku === 'gem_pack_l';
 
               const iconBg = item.category === 'gems'
                 ? 'radial-gradient(circle at 35% 35%,#1A3A4A,#0A1A28)'
@@ -403,7 +496,7 @@ export function Store() {
 
               return (
                 <div
-                  key={item.id}
+                  key={item.sku}
                   style={{ borderRadius: 16, background: isBestValue ? 'rgba(255,215,0,0.04)' : 'rgba(255,255,255,0.03)', border: `1px solid ${cardBorder}`, padding: '14px', marginBottom: 10 }}
                 >
                   {isBestValue && (
@@ -415,22 +508,23 @@ export function Store() {
                   )}
                   <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 10 }}>
                     <div style={{ width: 56, height: 56, borderRadius: 14, flexShrink: 0, background: iconBg, border: iconBorder, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>
-                      {item.icon}
+                      {item.image_url
+                        ? <img src={item.image_url} alt="" style={{ width: 40, height: 40, objectFit: 'contain' }} />
+                        : itemIcon(item)}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontFamily: 'Orbitron, sans-serif', color: '#FFFFFF', fontSize: 12, letterSpacing: '0.05em', marginBottom: 4 }}>{item.name}</div>
                       <div style={{ fontFamily: 'Inter, sans-serif', color: '#FFFFFF55', fontSize: 10, lineHeight: '1.45' }}>{item.description}</div>
                     </div>
                   </div>
-                  {gemCount && (
+                  {item.gems_granted > 0 && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 10, padding: '5px 12px', borderRadius: 20, background: 'rgba(0,242,255,0.08)', border: '1px solid #00F2FF30', width: 'fit-content' }}>
                       <span style={{ fontSize: 14 }}>💎</span>
-                      <span style={{ fontFamily: 'Inter, sans-serif', color: '#00F2FF', fontSize: 13, fontWeight: 700 }}>+{formatNum(gemCount)} Gems</span>
+                      <span style={{ fontFamily: 'Inter, sans-serif', color: '#00F2FF', fontSize: 13, fontWeight: 700 }}>+{formatNum(item.gems_granted)} Gems</span>
                     </div>
                   )}
                   {didBuy ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', borderRadius: 11, background: 'rgba(0,242,255,0.1)', border: '1px solid #00F2FF40' }}>
-                      <span style={{ color: '#00F2FF', fontSize: 15 }}>✓</span>
                       <span style={{ fontFamily: 'Orbitron, sans-serif', color: '#00F2FF', fontSize: 10, letterSpacing: '0.06em' }}>PURCHASE COMPLETE</span>
                     </div>
                   ) : (
@@ -446,7 +540,7 @@ export function Store() {
                         boxShadow: owned ? 'none' : isProcessing ? 'none' : '0 0 18px rgba(34,197,94,0.32)', lineHeight: '1.4',
                       }}
                     >
-                      {owned ? '✓ OWNED' : isProcessing ? 'PROCESSING...' : `BUY — $${item.price.toFixed(2)}`}
+                      {owned ? 'OWNED' : isProcessing ? 'PROCESSING...' : `BUY — ${item.price_str}`}
                     </button>
                   )}
                 </div>

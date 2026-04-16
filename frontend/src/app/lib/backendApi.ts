@@ -54,3 +54,43 @@ export function syncGameProgress(token: string, payload: { clicks: number; depth
     body: JSON.stringify(payload),
   });
 }
+
+// ── Catalog API ─────────────────────────────────────────────
+
+export interface CatalogItem {
+  sku: string;
+  name: string;
+  description: string;
+  image_url?: string;
+  category: string;
+  currency: string;       // "real" | "gem"
+  price: number;
+  price_str: string;
+  gems_granted: number;
+  featured: boolean;
+  one_time: boolean;
+  effect_type?: string;
+  effect_value?: number;
+  effect_duration?: number;
+}
+
+export interface CatalogResponse {
+  source: string;         // "xsolla" | "database"
+  items: CatalogItem[];
+}
+
+export function fetchStoreCatalog(): Promise<CatalogResponse> {
+  return request<CatalogResponse>('/store/catalog');
+}
+
+// ── Gem purchase API ────────────────────────────────────────
+
+export function buyGemItem(token: string, sku: string): Promise<{ status: string }> {
+  return request<{ status: string }>('/store/buy-gem-item', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ sku }),
+  });
+}
