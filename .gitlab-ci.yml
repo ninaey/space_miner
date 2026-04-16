@@ -8,6 +8,8 @@ variables:
   DOCKER_TLS_CERTDIR: ""
   DOCKER_DRIVER: overlay2
   IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+  GHCR_IMAGE: ghcr.io/ninaey/space_miner
+  GHCR_TAG: $GHCR_IMAGE:$CI_COMMIT_SHORT_SHA
   DEPLOY_PATH: /opt/space-colony-miner
 
 docker_ci_checks:
@@ -30,13 +32,28 @@ docker_build_push:
     - docker_ci_checks
   before_script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" --password-stdin
+    - |
+      if [ -n "$GHCR_USERNAME" ] && [ -n "$GHCR_TOKEN" ]; then
+        echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+      else
+        echo "GHCR credentials are not set; skipping GitHub Container Registry login."
+      fi
   script:
     - docker build --pull -f Dockerfile -t "$IMAGE_TAG" .
     - docker push "$IMAGE_TAG"
     - |
+      if [ -n "$GHCR_USERNAME" ] && [ -n "$GHCR_TOKEN" ]; then
+        docker tag "$IMAGE_TAG" "$GHCR_TAG"
+        docker push "$GHCR_TAG"
+      fi
+    - |
       if [ "$CI_COMMIT_BRANCH" = "$CI_DEFAULT_BRANCH" ]; then
         docker tag "$IMAGE_TAG" "$CI_REGISTRY_IMAGE:latest"
         docker push "$CI_REGISTRY_IMAGE:latest"
+        if [ -n "$GHCR_USERNAME" ] && [ -n "$GHCR_TOKEN" ]; then
+          docker tag "$IMAGE_TAG" "$GHCR_IMAGE:latest"
+          docker push "$GHCR_IMAGE:latest"
+        fi
       fi
   rules:
     - if: $CI_COMMIT_BRANCH

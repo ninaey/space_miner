@@ -1,5 +1,8 @@
 services:
   app:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: ${APP_IMAGE:-spacecolonyminer:latest}
     restart: unless-stopped
     depends_on:
