@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -150,6 +151,35 @@ func (h *StoreHandler) GetCatalog(w http.ResponseWriter, r *http.Request) {
 	if h.catalogFetcher != nil {
 		xsollaItems, err := h.catalogFetcher.FetchCatalog(r.Context())
 		if err == nil && len(xsollaItems) > 0 {
+			// Check if gem packs (category "gems") are present from Xsolla.
+			// VC packages often return empty if the virtual currency isn't
+			// fully configured — fill from DB in that case.
+			hasGemPacks := false
+			for _, item := range xsollaItems {
+				if item.Category == "gems" {
+					hasGemPacks = true
+					break
+				}
+			}
+			if !hasGemPacks {
+				dbItems, dbErr := h.service.GetCatalog(r.Context())
+				if dbErr == nil {
+					for _, dbi := range dbItems {
+						if dbi.Category == "gems" && dbi.CurrencyType == "real" {
+							xsollaItems = append(xsollaItems, CatalogItem{
+								SKU:         dbi.SKU,
+								Name:        dbi.Name,
+								Category:    "gems",
+								Currency:    "real",
+								Price:       dbi.BasePrice,
+								PriceStr:    fmt.Sprintf("$%.2f", dbi.BasePrice),
+								GemsGranted: dbi.GemsGranted,
+							})
+						}
+					}
+				}
+			}
+
 			writeJSON(w, http.StatusOK, map[string]any{
 				"source": "xsolla",
 				"items":  xsollaItems,
