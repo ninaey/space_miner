@@ -26,13 +26,19 @@ type v3TokenRequest struct {
 }
 
 type v3User struct {
-	ID    v3Field `json:"id"`
-	Name  v3Field `json:"name,omitempty"`
-	Email v3Field `json:"email,omitempty"`
+	ID      v3Field    `json:"id"`
+	Name    v3Field    `json:"name,omitempty"`
+	Email   v3Field    `json:"email,omitempty"`
+	Country *v3Country `json:"country,omitempty"`
 }
 
 type v3Field struct {
 	Value string `json:"value"`
+}
+
+type v3Country struct {
+	Value       string `json:"value"`
+	AllowModify bool   `json:"allow_modify,omitempty"`
 }
 
 type v3Settings struct {
@@ -52,6 +58,10 @@ type v3PurchaseItem struct {
 type v3TokenResponse struct {
 	Token   string `json:"token"`
 	OrderID int64  `json:"order_id"`
+}
+
+type xsollaErrorResponse struct {
+	ErrorMessage string `json:"errorMessage"`
 }
 
 // CreatePayment creates a PayStation token via Xsolla v3 Admin Payment Token API.
@@ -87,6 +97,10 @@ func (h *StoreHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
 		User: v3User{
 			ID:   v3Field{Value: playerID},
 			Name: v3Field{Value: player.Username},
+			Country: &v3Country{
+				Value:       "US",
+				AllowModify: true,
+			},
 		},
 		Settings: &v3Settings{
 			Language: "en",
@@ -140,7 +154,12 @@ func (h *StoreHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		log.Printf("paystation: xsolla returned %d: %s", resp.StatusCode, string(respBody))
-		writeError(w, http.StatusBadGateway, fmt.Sprintf("Xsolla token creation failed (status %d)", resp.StatusCode))
+		details := fmt.Sprintf("Xsolla token creation failed (status %d)", resp.StatusCode)
+		var xsErr xsollaErrorResponse
+		if err := json.Unmarshal(respBody, &xsErr); err == nil && xsErr.ErrorMessage != "" {
+			details = fmt.Sprintf("%s: %s", details, xsErr.ErrorMessage)
+		}
+		writeError(w, http.StatusBadGateway, details)
 		return
 	}
 

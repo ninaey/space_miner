@@ -175,6 +175,14 @@ export function Store() {
     });
   }, []);
 
+  const openPayStationInNewTab = useCallback((token: string) => {
+    const paystationUrl = `https://sandbox-secure.xsolla.com/paystation4/?token=${encodeURIComponent(token)}`;
+    const popup = window.open(paystationUrl, '_blank', 'noopener,noreferrer');
+    if (!popup) {
+      window.location.href = paystationUrl;
+    }
+  }, []);
+
   // ── USD item purchase via Xsolla PayStation ──
   const handlePurchase = async (item: CatalogItem) => {
     if (purchasing) return;
@@ -189,44 +197,50 @@ export function Store() {
 
     try {
       const { token } = await createPayment(session.token, item.sku);
+      try {
+        await ensurePayStationSDK();
 
-      await ensurePayStationSDK();
+        const XPayStationWidget = (window as any).XPayStationWidget;
+        if (!XPayStationWidget) throw new Error('PayStation SDK not available');
 
-      const XPayStationWidget = (window as any).XPayStationWidget;
-      if (!XPayStationWidget) throw new Error('PayStation SDK not available');
+        XPayStationWidget.init({
+          access_token: token,
+          sandbox: true,
+          lightbox: {
+            width: '740px',
+            height: '760px',
+            spinner: 'round',
+            spinnerColor: '#00F2FF',
+          },
+        });
 
-      XPayStationWidget.init({
-        access_token: token,
-        sandbox: true,
-        lightbox: {
-          width: '740px',
-          height: '760px',
-          spinner: 'round',
-          spinnerColor: '#00F2FF',
-        },
-      });
+        const handleStatus = ((_event: any, data: any) => {
+          if (data?.paymentInfo?.status === 'done' || data?.status === 'done') {
+            dispatch({ type: 'PURCHASE', itemId: item.sku, gems: item.gems_granted || undefined });
+            setJustBought(item.sku);
+            setFlashMsg({ text: `${item.name} purchased!`, color: '#00F2FF' });
+            setTimeout(() => { setJustBought(null); setFlashMsg(null); }, 3000);
+          }
+        });
 
-      const handleStatus = ((_event: any, data: any) => {
-        if (data?.paymentInfo?.status === 'done' || data?.status === 'done') {
-          dispatch({ type: 'PURCHASE', itemId: item.sku, gems: item.gems_granted || undefined });
-          setJustBought(item.sku);
-          setFlashMsg({ text: `${item.name} purchased!`, color: '#00F2FF' });
-          setTimeout(() => { setJustBought(null); setFlashMsg(null); }, 3000);
-        }
-      });
+        const handleClose = () => {
+          setPurchasing(null);
+          try {
+            XPayStationWidget.off(XPayStationWidget.eventTypes.STATUS, handleStatus);
+            XPayStationWidget.off(XPayStationWidget.eventTypes.CLOSE, handleClose);
+          } catch { /* widget may already be cleaned up */ }
+        };
 
-      const handleClose = () => {
+        XPayStationWidget.on(XPayStationWidget.eventTypes.STATUS, handleStatus);
+        XPayStationWidget.on(XPayStationWidget.eventTypes.CLOSE, handleClose);
+        XPayStationWidget.open();
+      } catch (embedErr) {
+        console.warn('PayStation embed unavailable, opening in new tab:', embedErr);
+        openPayStationInNewTab(token);
         setPurchasing(null);
-        try {
-          XPayStationWidget.off(XPayStationWidget.eventTypes.STATUS, handleStatus);
-          XPayStationWidget.off(XPayStationWidget.eventTypes.CLOSE, handleClose);
-        } catch { /* widget may already be cleaned up */ }
-      };
-
-      XPayStationWidget.on(XPayStationWidget.eventTypes.STATUS, handleStatus);
-      XPayStationWidget.on(XPayStationWidget.eventTypes.CLOSE, handleClose);
-
-      XPayStationWidget.open();
+        setFlashMsg({ text: 'Payment opened in new tab.', color: '#00F2FF' });
+        setTimeout(() => setFlashMsg(null), 3000);
+      }
     } catch (err: any) {
       console.error('PayStation error:', err);
       setPurchasing(null);
