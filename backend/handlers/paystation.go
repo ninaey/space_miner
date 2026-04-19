@@ -38,12 +38,6 @@ type v3Field struct {
 type v3Settings struct {
 	Language string `json:"language,omitempty"`
 	Currency string `json:"currency,omitempty"`
-	UI       *v3UI  `json:"ui,omitempty"`
-}
-
-type v3UI struct {
-	Size  string `json:"size,omitempty"`
-	Theme string `json:"theme,omitempty"`
 }
 
 type v3Purchase struct {
@@ -68,8 +62,8 @@ func (h *StoreHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if h.apiKey == "" || h.projectID == 0 {
-		writeError(w, http.StatusServiceUnavailable, "PayStation not configured: missing API key or project ID")
+	if h.apiKey == "" || h.projectID == 0 || h.merchantID == 0 {
+		writeError(w, http.StatusServiceUnavailable, "PayStation not configured: missing API key, project ID, or merchant ID")
 		return
 	}
 
@@ -97,10 +91,6 @@ func (h *StoreHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
 		Settings: &v3Settings{
 			Language: "en",
 			Currency: "USD",
-			UI: &v3UI{
-				Size:  "medium",
-				Theme: "dark",
-			},
 		},
 		Purchase: v3Purchase{
 			Items: []v3PurchaseItem{
@@ -130,7 +120,7 @@ func (h *StoreHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	credentials := fmt.Sprintf("%d:%s", h.projectID, h.apiKey)
+	credentials := fmt.Sprintf("%d:%s", h.merchantID, h.apiKey)
 	httpReq.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(credentials)))
 	httpReq.Header.Set("Content-Type", "application/json")
 
@@ -148,7 +138,7 @@ func (h *StoreHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
 
 	respBody, _ := io.ReadAll(resp.Body)
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		log.Printf("paystation: xsolla returned %d: %s", resp.StatusCode, string(respBody))
 		writeError(w, http.StatusBadGateway, fmt.Sprintf("Xsolla token creation failed (status %d)", resp.StatusCode))
 		return
