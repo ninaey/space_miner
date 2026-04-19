@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 )
 
 // ── PayStation token creation (Xsolla v3 Admin Token API) ────────
@@ -122,7 +123,7 @@ func (h *StoreHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url := fmt.Sprintf("https://api.xsolla.com/v3/project/%d/admin/payment/token", h.projectID)
+	url := fmt.Sprintf("https://store.xsolla.com/api/v3/project/%d/admin/payment/token", h.projectID)
 	httpReq, err := http.NewRequestWithContext(r.Context(), http.MethodPost, url, bytes.NewReader(body))
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to create HTTP request")
@@ -132,6 +133,10 @@ func (h *StoreHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
 	credentials := fmt.Sprintf("%d:%s", h.projectID, h.apiKey)
 	httpReq.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(credentials)))
 	httpReq.Header.Set("Content-Type", "application/json")
+
+	if ip := clientIP(r); ip != "" {
+		httpReq.Header.Set("X-User-Ip", ip)
+	}
 
 	resp, err := h.httpClient.Do(httpReq)
 	if err != nil {
@@ -162,6 +167,25 @@ func (h *StoreHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
 		"token":    tokenResp.Token,
 		"order_id": tokenResp.OrderID,
 	})
+}
+
+// clientIP extracts the best-guess public IP of the caller so Xsolla can
+// detect the user's country/currency when creating a payment token.
+func clientIP(r *http.Request) string {
+	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
+		if idx := strings.Index(xff, ","); idx >= 0 {
+			return strings.TrimSpace(xff[:idx])
+		}
+		return strings.TrimSpace(xff)
+	}
+	if xrip := r.Header.Get("X-Real-Ip"); xrip != "" {
+		return strings.TrimSpace(xrip)
+	}
+	host := r.RemoteAddr
+	if idx := strings.LastIndex(host, ":"); idx >= 0 {
+		host = host[:idx]
+	}
+	return strings.Trim(host, "[]")
 }
 
 // ── Webhook notification types and parsing ───────────────────────
