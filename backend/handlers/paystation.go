@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"slices"
 	"strings"
 )
 
@@ -72,8 +73,19 @@ func (h *StoreHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if h.apiKey == "" || h.projectID == 0 || h.merchantID == 0 {
-		writeError(w, http.StatusServiceUnavailable, "PayStation not configured: missing API key, project ID, or merchant ID")
+	var missing []string
+	if h.apiKey == "" {
+		missing = append(missing, "XSOLLA_API_KEY")
+	}
+	if h.projectID == 0 {
+		missing = append(missing, "XSOLLA_PROJECT_ID")
+	}
+	if h.merchantID == 0 {
+		missing = append(missing, "XSOLLA_MERCHANT_ID")
+	}
+	if len(missing) > 0 {
+		slices.Sort(missing)
+		writeError(w, http.StatusServiceUnavailable, fmt.Sprintf("PayStation not configured: missing %s", strings.Join(missing, ", ")))
 		return
 	}
 
