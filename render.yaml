@@ -1,0 +1,37 @@
+databases:
+  - name: spaceminergame
+    plan: free
+    databaseName: spaceminergame
+    user: spaceminer
+
+services:
+  - type: web
+    name: space-colony-miner
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: PORT
+        value: "8080"
+      - key: STATIC_DIR
+        value: /app/public
+      - key: DATABASE_URL
+        fromDatabase:
+          name: spaceminergame
+          property: connectionString
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: XSOLLA_JWKS_URL
+        sync: false
+      - key: XSOLLA_ISSUER
+        value: https://login.xsolla.com
+      - key: XSOLLA_AUDIENCE
+        sync: false
+      - key: XSOLLA_PROJECT_ID
+        value: "304856"
+      - key: XSOLLA_MERCHANT_ID
+        value: "879363"
+      - key: XSOLLA_API_KEY
+        sync: false
+      - key: XSOLLA_WEBHOOK_SECRET
+        sync: false

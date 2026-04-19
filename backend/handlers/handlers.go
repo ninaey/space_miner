@@ -30,6 +30,9 @@ type StoreHandler struct {
 	service        *game.Service
 	catalogURL     string
 	webhookSecret  string
+	projectID      int
+	merchantID     int
+	apiKey         string
 	httpClient     *http.Client
 	catalogFetcher *XsollaCatalogFetcher
 }
@@ -42,11 +45,14 @@ func NewGameHandler(service *game.Service) *GameHandler {
 	return &GameHandler{service: service}
 }
 
-func NewStoreHandler(service *game.Service, catalogURL, webhookSecret string, projectID int) *StoreHandler {
+func NewStoreHandler(service *game.Service, catalogURL, webhookSecret string, projectID, merchantID int, apiKey string) *StoreHandler {
 	return &StoreHandler{
 		service:        service,
 		catalogURL:     catalogURL,
 		webhookSecret:  webhookSecret,
+		projectID:      projectID,
+		merchantID:     merchantID,
+		apiKey:         apiKey,
 		catalogFetcher: NewXsollaCatalogFetcher(projectID),
 		httpClient: &http.Client{
 			Timeout: 10 * time.Second,
@@ -241,6 +247,104 @@ func (h *StoreHandler) XsollaWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var notification webhookNotification
+	if err := json.Unmarshal(body, &notification); err != nil {
+		log.Printf("webhook: failed to parse body: %v", err)
+		writeError(w, http.StatusBadRequest, "invalid notification body")
+		return
+	}
+
+	log.Printf("webhook: received notification_type=%s", notification.NotificationType)
+
+	switch notification.NotificationType {
+	case "user_validation":
+		h.handleUserValidation(w, r, notification)
+	case "payment":
+		h.handlePaymentNotification(w, r, notification)
+	case "refund":
+		h.handleRefundNotification(w, notification)
+	default:
+		log.Printf("webhook: unhandled notification_type=%s", notification.NotificationType)
+		writeJSON(w, http.StatusOK, map[string]string{"status": "accepted"})
+	}
+}
+
+func (h *StoreHandler) handleUserValidation(w http.ResponseWriter, r *http.Request, n webhookNotification) {
+	if n.User == nil || n.User.ID == "" {
+		writeError(w, http.StatusBadRequest, "missing user ID")
+		return
+	}
+
+	_, err := h.service.GetPlayerByID(r.Context(), n.User.ID)
+	if err != nil {
+		log.Printf("webhook: user_validation failed for user=%s: %v", n.User.ID, err)
+		writeError(w, http.StatusNotFound, "user not found")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"status": "accepted"})
+}
+
+func (h *StoreHandler) handlePaymentNotification(w http.ResponseWriter, r *http.Request, n webhookNotification) {
+	if n.User == nil || n.User.ID == "" {
+		writeError(w, http.StatusBadRequest, "missing user in payment notification")
+		return
+	}
+	if n.Transaction == nil {
+		writeError(w, http.StatusBadRequest, "missing transaction in payment notification")
+		return
+	}
+
+	isDryRun := n.Transaction.DryRun == 1
+	playerID := n.User.ID
+	txnID := n.Transaction.ID
+
+	var amount float64
+	var currency string
+	if n.Purchase != nil && n.Purchase.Total != nil {
+		amount = n.Purchase.Total.Amount
+		currency = n.Purchase.Total.Currency
+	}
+
+	// Collect all SKUs from the purchase
+	var skus []string
+	if n.Purchase != nil {
+		if n.Purchase.VirtualItems != nil {
+			for _, item := range n.Purchase.VirtualItems.Items {
+				for i := 0; i < item.Quantity; i++ {
+					skus = append(skus, item.SKU)
+				}
+			}
+		}
+		if n.Purchase.VirtualCurrency != nil && n.Purchase.VirtualCurrency.SKU != "" {
+			skus = append(skus, n.Purchase.VirtualCurrency.SKU)
+		}
+	}
+
+	if isDryRun {
+		log.Printf("webhook: DRY RUN payment txn=%d player=%s skus=%v amount=%.2f %s", txnID, playerID, skus, amount, currency)
+		writeJSON(w, http.StatusOK, map[string]string{"status": "accepted"})
+		return
+	}
+
+	log.Printf("webhook: payment txn=%d player=%s skus=%v amount=%.2f %s", txnID, playerID, skus, amount, currency)
+
+	for _, sku := range skus {
+		if err := h.service.FulfillPurchase(r.Context(), playerID, sku, txnID, amount); err != nil {
+			log.Printf("webhook: fulfillment failed for player=%s sku=%s txn=%d: %v", playerID, sku, txnID, err)
+			writeError(w, http.StatusInternalServerError, "fulfillment error: "+err.Error())
+			return
+		}
+		log.Printf("webhook: fulfilled sku=%s for player=%s txn=%d", sku, playerID, txnID)
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"status": "accepted"})
+}
+
+func (h *StoreHandler) handleRefundNotification(w http.ResponseWriter, n webhookNotification) {
+	if n.Transaction != nil {
+		log.Printf("webhook: refund received for txn=%d user=%s", n.Transaction.ID, n.User.ID)
+	}
 	writeJSON(w, http.StatusOK, map[string]string{"status": "accepted"})
 }
 

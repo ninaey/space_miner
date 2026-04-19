@@ -103,6 +103,32 @@ func (s *Service) BuyGemItem(ctx context.Context, playerID, sku string) error {
 	return s.repo.PurchaseWithGems(ctx, playerID, item)
 }
 
+func (s *Service) GetPlayerByID(ctx context.Context, playerID string) (models.Player, error) {
+	return s.repo.GetPlayerByID(ctx, playerID)
+}
+
+func (s *Service) GetStoreItem(ctx context.Context, sku string) (models.StoreItem, error) {
+	return s.repo.GetStoreItem(ctx, sku)
+}
+
+// FulfillPurchase grants the item/gems for a real-money purchase after PayStation payment.
+func (s *Service) FulfillPurchase(ctx context.Context, playerID, sku string, transactionID int64, amount float64) error {
+	item, err := s.repo.GetStoreItem(ctx, sku)
+	if err != nil {
+		return errors.New("unknown SKU: " + sku)
+	}
+
+	if err := s.repo.RecordTransaction(ctx, transactionID, playerID, sku, amount); err != nil {
+		return err
+	}
+
+	if item.GemsGranted > 0 {
+		return s.repo.GrantGems(ctx, playerID, item.GemsGranted)
+	}
+
+	return s.repo.GrantItem(ctx, playerID, sku)
+}
+
 func computePassiveRate(robots []models.Robot, boosts []models.ActiveBoost) float64 {
 	baseRate := 0.2
 	for _, robot := range robots {

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useGame, STORE_ITEMS as FALLBACK_STORE, GEM_ITEMS as FALLBACK_GEM } from '../../context/GameContext';
-import { fetchStoreCatalog, buyGemItem, type CatalogItem } from '../../lib/backendApi';
+import { fetchStoreCatalog, buyGemItem, createPayment, type CatalogItem } from '../../lib/backendApi';
 import { getBackendSession } from '../../context/GameContext';
 
 const formatNum = (n: number): string => {
@@ -151,16 +151,93 @@ export function Store() {
       }))
     : gemItems;
 
-  // ── USD item purchase (placeholder for Pay Station - Phase 3)
-  const handlePurchase = (item: CatalogItem) => {
+  // ── PayStation widget loader ──
+  const paystationLoadedRef = useRef(false);
+
+  const ensurePayStationSDK = useCallback((): Promise<void> => {
+    if ((window as any).XPayStationWidget) return Promise.resolve();
+    if (paystationLoadedRef.current) {
+      return new Promise((resolve) => {
+        const check = setInterval(() => {
+          if ((window as any).XPayStationWidget) { clearInterval(check); resolve(); }
+        }, 100);
+        setTimeout(() => { clearInterval(check); resolve(); }, 5000);
+      });
+    }
+    paystationLoadedRef.current = true;
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.xsolla.net/embed/paystation/1.2.7/widget.min.js';
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Failed to load PayStation SDK'));
+      document.head.appendChild(script);
+    });
+  }, []);
+
+  // ── USD item purchase via Xsolla PayStation ──
+  const handlePurchase = async (item: CatalogItem) => {
     if (purchasing) return;
+    const session = getBackendSession();
+    if (!session?.token) {
+      setFlashMsg({ text: 'Please log in to make purchases.', color: '#FF4444' });
+      setTimeout(() => setFlashMsg(null), 2500);
+      return;
+    }
+
     setPurchasing(item.sku);
-    setTimeout(() => {
-      dispatch({ type: 'PURCHASE', itemId: item.sku, gems: item.gems_granted || undefined });
+
+    try {
+      const { token } = await createPayment(session.token, item.sku);
+
+      await ensurePayStationSDK();
+
+      const XPayStationWidget = (window as any).XPayStationWidget;
+      if (!XPayStationWidget) throw new Error('PayStation SDK not available');
+
+      XPayStationWidget.init({
+        access_token: token,
+        sandbox: true,
+        lightbox: {
+          width: '740px',
+          height: '760px',
+          spinner: 'round',
+          spinnerColor: '#00F2FF',
+        },
+      });
+
+      const handleStatus = ((_event: any, data: any) => {
+        if (data?.paymentInfo?.status === 'done' || data?.status === 'done') {
+          dispatch({ type: 'PURCHASE', itemId: item.sku, gems: item.gems_granted || undefined });
+          setJustBought(item.sku);
+          setFlashMsg({ text: `${item.name} purchased!`, color: '#00F2FF' });
+          setTimeout(() => { setJustBought(null); setFlashMsg(null); }, 3000);
+        }
+      });
+
+      const handleClose = () => {
+        setPurchasing(null);
+        try {
+          XPayStationWidget.off(XPayStationWidget.eventTypes.STATUS, handleStatus);
+          XPayStationWidget.off(XPayStationWidget.eventTypes.CLOSE, handleClose);
+        } catch { /* widget may already be cleaned up */ }
+      };
+
+      XPayStationWidget.on(XPayStationWidget.eventTypes.STATUS, handleStatus);
+      XPayStationWidget.on(XPayStationWidget.eventTypes.CLOSE, handleClose);
+
+      XPayStationWidget.open();
+    } catch (err: any) {
+      console.error('PayStation error:', err);
       setPurchasing(null);
-      setJustBought(item.sku);
-      setTimeout(() => setJustBought(null), 2500);
-    }, 1200);
+      setFlashMsg({
+        text: err?.message?.includes('not configured')
+          ? 'PayStation not configured yet. Add API key to backend.'
+          : `Payment failed: ${err?.message || 'Unknown error'}`,
+        color: '#FF4444',
+      });
+      setTimeout(() => setFlashMsg(null), 4000);
+    }
   };
 
   // ── Gem item purchase — calls backend API

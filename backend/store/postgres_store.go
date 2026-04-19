@@ -23,6 +23,9 @@ type Repository interface {
 	GetStoreItem(ctx context.Context, sku string) (models.StoreItem, error)
 	PurchaseWithGems(ctx context.Context, playerID string, item models.StoreItem) error
 	ApplyOfflineEarnings(ctx context.Context, playerID string, depthDelta int, syncAt time.Time) error
+	RecordTransaction(ctx context.Context, transactionID int64, playerID, sku string, amount float64) error
+	GrantGems(ctx context.Context, playerID string, amount int) error
+	GrantItem(ctx context.Context, playerID, sku string) error
 }
 
 type PostgresStore struct {
@@ -283,6 +286,33 @@ func (s *PostgresStore) PurchaseWithGems(ctx context.Context, playerID string, i
 
 func (s *PostgresStore) ApplyOfflineEarnings(ctx context.Context, playerID string, depthDelta int, syncAt time.Time) error {
 	return s.UpdateGameStateAndSyncTime(ctx, playerID, depthDelta, float64(depthDelta), syncAt)
+}
+
+func (s *PostgresStore) RecordTransaction(ctx context.Context, transactionID int64, playerID, sku string, amount float64) error {
+	_, err := s.db.Exec(ctx, `
+		INSERT INTO xsolla_transactions (transaction_id, player_id, sku, amount, status)
+		VALUES ($1, $2, $3, $4, 'completed')
+		ON CONFLICT (transaction_id) DO NOTHING
+	`, transactionID, playerID, sku, amount)
+	return err
+}
+
+func (s *PostgresStore) GrantGems(ctx context.Context, playerID string, amount int) error {
+	_, err := s.db.Exec(ctx, `
+		UPDATE players
+		SET gem_balance = gem_balance + $2
+		WHERE id = $1
+	`, playerID, amount)
+	return err
+}
+
+func (s *PostgresStore) GrantItem(ctx context.Context, playerID, sku string) error {
+	_, err := s.db.Exec(ctx, `
+		INSERT INTO player_inventory (player_id, item_sku)
+		VALUES ($1, $2)
+		ON CONFLICT (player_id, item_sku) DO NOTHING
+	`, playerID, sku)
+	return err
 }
 
 func nullableString(value string) any {

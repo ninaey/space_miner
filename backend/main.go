@@ -20,12 +20,15 @@ import (
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 )
 
 //go:embed migrations/init.up.sql
 var migrationSQL string
 
 func main() {
+	_ = godotenv.Load()
+
 	cfg := config.Load()
 
 	ctx := context.Background()
@@ -41,7 +44,7 @@ func main() {
 	gameService := game.NewService(repo)
 	authHandler := handlers.NewAuthHandler(gameService)
 	gameHandler := handlers.NewGameHandler(gameService)
-	storeHandler := handlers.NewStoreHandler(gameService, cfg.XsollaCatalogURL, cfg.XsollaWebhookSecret, cfg.XsollaProjectID)
+	storeHandler := handlers.NewStoreHandler(gameService, cfg.XsollaCatalogURL, cfg.XsollaWebhookSecret, cfg.XsollaProjectID, cfg.XsollaMerchantID, cfg.XsollaAPIKey)
 
 	jwtValidator, err := handlers.NewJWTValidator(cfg.XsollaJWKSURL, cfg.XsollaIssuer, cfg.XsollaAudience)
 	if err != nil {
@@ -77,6 +80,7 @@ func main() {
 			gr.Post("/sync", gameHandler.Sync)
 		})
 		r.Post("/store/buy-gem-item", storeHandler.BuyGemItem)
+		r.Post("/store/create-payment", storeHandler.CreatePayment)
 	})
 
 	configureStaticHosting(router, cfg.StaticDir)

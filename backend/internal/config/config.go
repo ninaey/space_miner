@@ -13,6 +13,8 @@ type Config struct {
 	XsollaIssuer        string
 	XsollaAudience      string
 	XsollaProjectID     int
+	XsollaMerchantID    int
+	XsollaAPIKey        string
 	XsollaCatalogURL    string
 	XsollaWebhookSecret string
 	AllowedOrigins      string
@@ -21,6 +23,7 @@ type Config struct {
 
 func Load() Config {
 	projectID, _ := strconv.Atoi(os.Getenv("XSOLLA_PROJECT_ID"))
+	merchantID, _ := strconv.Atoi(os.Getenv("XSOLLA_MERCHANT_ID"))
 
 	cfg := Config{
 		Port:                getEnv("PORT", "8080"),
@@ -29,6 +32,8 @@ func Load() Config {
 		XsollaIssuer:        os.Getenv("XSOLLA_ISSUER"),
 		XsollaAudience:      os.Getenv("XSOLLA_AUDIENCE"),
 		XsollaProjectID:     projectID,
+		XsollaMerchantID:    merchantID,
+		XsollaAPIKey:        os.Getenv("XSOLLA_API_KEY"),
 		XsollaCatalogURL:    os.Getenv("XSOLLA_CATALOG_URL"),
 		XsollaWebhookSecret: os.Getenv("XSOLLA_WEBHOOK_SECRET"),
 		AllowedOrigins:      getEnv("ALLOWED_ORIGINS", "*"),
@@ -40,6 +45,9 @@ func Load() Config {
 	}
 	if cfg.XsollaProjectID == 0 {
 		log.Println("warning: XSOLLA_PROJECT_ID is empty; catalog will use database fallback")
+	}
+	if cfg.XsollaAPIKey == "" {
+		log.Println("warning: XSOLLA_API_KEY is empty; PayStation token creation will be unavailable")
 	}
 
 	return cfg

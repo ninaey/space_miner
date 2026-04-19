@@ -94,3 +94,20 @@ export function buyGemItem(token: string, sku: string): Promise<{ status: string
     body: JSON.stringify({ sku }),
   });
 }
+
+// ── PayStation API ──────────────────────────────────────────
+
+export interface CreatePaymentResponse {
+  token: string;
+  order_id: number;
+}
+
+export function createPayment(authToken: string, sku: string): Promise<CreatePaymentResponse> {
+  return request<CreatePaymentResponse>('/store/create-payment', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${authToken}`,
+    },
+    body: JSON.stringify({ sku }),
+  });
+}
