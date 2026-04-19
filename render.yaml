@@ -1,8 +1,8 @@
 databases:
-  - name: spaceminergame
+  - name: spaceminer-db
     plan: free
     databaseName: spaceminergame
-    user: spaceminer
+    user: spaceminergame_user
 
 services:
   - type: web

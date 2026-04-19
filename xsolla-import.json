@@ -1,0 +1,715 @@
+{
+  "virtual_currency": [
+    {
+      "sku": "gems",
+      "name": {
+        "en-US": "Gems"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "currency"
+      ],
+      "order": 1,
+      "description": {
+        "en-US": "Premium currency for the Space Colony. Spend gems on instant boosts, special abilities, and exclusive cosmetics."
+      },
+      "prices": [
+        {
+          "amount": 1,
+          "currency": "USD",
+          "is_enabled": true,
+          "is_default": true
+        }
+      ],
+      "attributes": [],
+      "custom_attributes": {}
+    }
+  ],
+  "virtual_items": [
+    {
+      "sku": "super_drill",
+      "name": {
+        "en": "Super Drill Mk. II"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "equipment",
+        "featured"
+      ],
+      "order": 1,
+      "description": {
+        "en": "Increases mining speed by 3x forever. The ultimate tool for any serious space miner."
+      },
+      "prices": [
+        {
+          "amount": 4.99,
+          "currency": "USD",
+          "is_enabled": true,
+          "is_default": true
+        }
+      ],
+      "vc_prices": [],
+      "is_show_in_store": true,
+      "attributes": [
+        {
+          "external_id": "effect_type",
+          "name": {
+            "en": "Effect Type"
+          },
+          "values": [
+            {
+              "external_id": "clickBoost",
+              "value": {
+                "en": "clickBoost"
+              }
+            }
+          ]
+        },
+        {
+          "external_id": "effect_value",
+          "name": {
+            "en": "Effect Value"
+          },
+          "values": [
+            {
+              "external_id": "3",
+              "value": {
+                "en": "3"
+              }
+            }
+          ]
+        }
+      ],
+      "limits": {
+        "per_user": 1,
+        "per_item": null
+      },
+      "custom_attributes": {
+        "category": "equipment",
+        "one_time": true
+      }
+    },
+    {
+      "sku": "inventory_expander",
+      "name": {
+        "en": "Inventory Expander"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "equipment",
+        "featured"
+      ],
+      "order": 2,
+      "description": {
+        "en": "Double your mineral storage capacity. Never lose resources to a full cargo hold again."
+      },
+      "prices": [
+        {
+          "amount": 2.99,
+          "currency": "USD",
+          "is_enabled": true,
+          "is_default": true
+        }
+      ],
+      "vc_prices": [],
+      "is_show_in_store": true,
+      "attributes": [
+        {
+          "external_id": "effect_type",
+          "name": {
+            "en": "Effect Type"
+          },
+          "values": [
+            {
+              "external_id": "storageBoost",
+              "value": {
+                "en": "storageBoost"
+              }
+            }
+          ]
+        },
+        {
+          "external_id": "effect_value",
+          "name": {
+            "en": "Effect Value"
+          },
+          "values": [
+            {
+              "external_id": "2",
+              "value": {
+                "en": "2"
+              }
+            }
+          ]
+        }
+      ],
+      "limits": {
+        "per_user": 1,
+        "per_item": null
+      },
+      "custom_attributes": {
+        "category": "equipment",
+        "one_time": true
+      }
+    },
+    {
+      "sku": "turbo_drill_boost",
+      "name": {
+        "en": "Turbo Drill Boost"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "booster"
+      ],
+      "order": 3,
+      "description": {
+        "en": "Instantly triples your click power for the next 100 manual taps. Great for breaking into a new layer fast."
+      },
+      "prices": [],
+      "vc_prices": [
+        {
+          "sku": "gems",
+          "amount": 50,
+          "is_default": true
+        }
+      ],
+      "is_show_in_store": true,
+      "attributes": [
+        {
+          "external_id": "effect_type",
+          "name": {
+            "en": "Effect Type"
+          },
+          "values": [
+            {
+              "external_id": "clickBoost",
+              "value": {
+                "en": "clickBoost"
+              }
+            }
+          ]
+        },
+        {
+          "external_id": "effect_value",
+          "name": {
+            "en": "Effect Value"
+          },
+          "values": [
+            {
+              "external_id": "3",
+              "value": {
+                "en": "3"
+              }
+            }
+          ]
+        },
+        {
+          "external_id": "effect_duration",
+          "name": {
+            "en": "Effect Duration"
+          },
+          "values": [
+            {
+              "external_id": "100",
+              "value": {
+                "en": "100"
+              }
+            }
+          ]
+        }
+      ],
+      "limits": {
+        "per_user": null,
+        "per_item": null
+      },
+      "custom_attributes": {
+        "category": "boost"
+      }
+    },
+    {
+      "sku": "depth_dive",
+      "name": {
+        "en": "Depth Dive"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "booster"
+      ],
+      "order": 4,
+      "description": {
+        "en": "Skip ahead +250m instantly. Jump straight into the next geological layer without grinding."
+      },
+      "prices": [],
+      "vc_prices": [
+        {
+          "sku": "gems",
+          "amount": 75,
+          "is_default": true
+        }
+      ],
+      "is_show_in_store": true,
+      "attributes": [
+        {
+          "external_id": "effect_type",
+          "name": {
+            "en": "Effect Type"
+          },
+          "values": [
+            {
+              "external_id": "depthBoost",
+              "value": {
+                "en": "depthBoost"
+              }
+            }
+          ]
+        },
+        {
+          "external_id": "effect_value",
+          "name": {
+            "en": "Effect Value"
+          },
+          "values": [
+            {
+              "external_id": "250",
+              "value": {
+                "en": "250"
+              }
+            }
+          ]
+        }
+      ],
+      "limits": {
+        "per_user": null,
+        "per_item": null
+      },
+      "custom_attributes": {
+        "category": "boost"
+      }
+    },
+    {
+      "sku": "drone_overclock",
+      "name": {
+        "en": "Drone Overclock"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "booster"
+      ],
+      "order": 5,
+      "description": {
+        "en": "All drones mine at 4x speed for 60 seconds. Massive passive income surge."
+      },
+      "prices": [],
+      "vc_prices": [
+        {
+          "sku": "gems",
+          "amount": 80,
+          "is_default": true
+        }
+      ],
+      "is_show_in_store": true,
+      "attributes": [
+        {
+          "external_id": "effect_type",
+          "name": {
+            "en": "Effect Type"
+          },
+          "values": [
+            {
+              "external_id": "droneBoost",
+              "value": {
+                "en": "droneBoost"
+              }
+            }
+          ]
+        },
+        {
+          "external_id": "effect_value",
+          "name": {
+            "en": "Effect Value"
+          },
+          "values": [
+            {
+              "external_id": "4",
+              "value": {
+                "en": "4"
+              }
+            }
+          ]
+        },
+        {
+          "external_id": "effect_duration",
+          "name": {
+            "en": "Effect Duration"
+          },
+          "values": [
+            {
+              "external_id": "60",
+              "value": {
+                "en": "60"
+              }
+            }
+          ]
+        }
+      ],
+      "limits": {
+        "per_user": null,
+        "per_item": null
+      },
+      "custom_attributes": {
+        "category": "boost"
+      }
+    },
+    {
+      "sku": "mega_mine_burst",
+      "name": {
+        "en": "Mega Mine Burst"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "booster"
+      ],
+      "order": 6,
+      "description": {
+        "en": "Instantly mine 500x your current click power in one explosion. One-time use per purchase."
+      },
+      "prices": [],
+      "vc_prices": [
+        {
+          "sku": "gems",
+          "amount": 30,
+          "is_default": true
+        }
+      ],
+      "is_show_in_store": true,
+      "attributes": [
+        {
+          "external_id": "effect_type",
+          "name": {
+            "en": "Effect Type"
+          },
+          "values": [
+            {
+              "external_id": "mineBurst",
+              "value": {
+                "en": "mineBurst"
+              }
+            }
+          ]
+        },
+        {
+          "external_id": "effect_value",
+          "name": {
+            "en": "Effect Value"
+          },
+          "values": [
+            {
+              "external_id": "500",
+              "value": {
+                "en": "500"
+              }
+            }
+          ]
+        }
+      ],
+      "limits": {
+        "per_user": null,
+        "per_item": null
+      },
+      "custom_attributes": {
+        "category": "boost"
+      }
+    },
+    {
+      "sku": "auto_sell_module",
+      "name": {
+        "en": "Auto-Sell Module"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "booster"
+      ],
+      "order": 7,
+      "description": {
+        "en": "Automatically sells all minerals every 30 seconds for 5 minutes. Sit back and watch gold roll in."
+      },
+      "prices": [],
+      "vc_prices": [
+        {
+          "sku": "gems",
+          "amount": 120,
+          "is_default": true
+        }
+      ],
+      "is_show_in_store": true,
+      "attributes": [
+        {
+          "external_id": "effect_type",
+          "name": {
+            "en": "Effect Type"
+          },
+          "values": [
+            {
+              "external_id": "autoSell",
+              "value": {
+                "en": "autoSell"
+              }
+            }
+          ]
+        },
+        {
+          "external_id": "effect_duration",
+          "name": {
+            "en": "Effect Duration"
+          },
+          "values": [
+            {
+              "external_id": "300",
+              "value": {
+                "en": "300"
+              }
+            }
+          ]
+        }
+      ],
+      "limits": {
+        "per_user": null,
+        "per_item": null
+      },
+      "custom_attributes": {
+        "category": "boost"
+      }
+    },
+    {
+      "sku": "storage_purge",
+      "name": {
+        "en": "Storage Purge Protocol"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "booster"
+      ],
+      "order": 8,
+      "description": {
+        "en": "Sell everything in your cargo hold instantly at 2x market value. One-time emergency cash-out."
+      },
+      "prices": [],
+      "vc_prices": [
+        {
+          "sku": "gems",
+          "amount": 100,
+          "is_default": true
+        }
+      ],
+      "is_show_in_store": true,
+      "attributes": [
+        {
+          "external_id": "effect_type",
+          "name": {
+            "en": "Effect Type"
+          },
+          "values": [
+            {
+              "external_id": "doubleSell",
+              "value": {
+                "en": "doubleSell"
+              }
+            }
+          ]
+        },
+        {
+          "external_id": "effect_value",
+          "name": {
+            "en": "Effect Value"
+          },
+          "values": [
+            {
+              "external_id": "2",
+              "value": {
+                "en": "2"
+              }
+            }
+          ]
+        }
+      ],
+      "limits": {
+        "per_user": null,
+        "per_item": null
+      },
+      "custom_attributes": {
+        "category": "boost"
+      }
+    },
+    {
+      "sku": "neon_commander_frame",
+      "name": {
+        "en": "Neon Commander Frame"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "cosmetic",
+        "one_time"
+      ],
+      "order": 9,
+      "description": {
+        "en": "Unlock the exclusive Neon Commander avatar frame. Purely cosmetic — flex on other colonists."
+      },
+      "prices": [],
+      "vc_prices": [
+        {
+          "sku": "gems",
+          "amount": 200,
+          "is_default": true
+        }
+      ],
+      "is_show_in_store": true,
+      "attributes": [
+        {
+          "external_id": "effect_type",
+          "name": {
+            "en": "Effect Type"
+          },
+          "values": [
+            {
+              "external_id": "cosmetic",
+              "value": {
+                "en": "cosmetic"
+              }
+            }
+          ]
+        }
+      ],
+      "limits": {
+        "per_user": 1,
+        "per_item": null
+      },
+      "custom_attributes": {
+        "category": "cosmetic",
+        "one_time": true
+      }
+    }
+  ],
+  "virtual_currency_packages": [
+    {
+      "sku": "gem_pack_s",
+      "name": {
+        "en-US": "Gem Pack — Rookie"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "gems"
+      ],
+      "order": 1,
+      "description": {
+        "en-US": "100 Gems for your colony. A great starter pack for new commanders."
+      },
+      "prices": [
+        {
+          "currency": "USD",
+          "amount": 0.99,
+          "is_default": true,
+          "is_enabled": true
+        }
+      ],
+      "vc_prices": null,
+      "content": [
+        {
+          "sku": "gems",
+          "quantity": 100
+        }
+      ],
+      "limits": {
+        "per_user": null,
+        "per_item": null
+      },
+      "custom_attributes": {
+        "category": "gems"
+      }
+    },
+    {
+      "sku": "gem_pack_m",
+      "name": {
+        "en-US": "Gem Pack — Commander"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "gems"
+      ],
+      "order": 2,
+      "description": {
+        "en-US": "500 Gems + 50 bonus gems! The smart choice for active miners."
+      },
+      "prices": [
+        {
+          "currency": "USD",
+          "amount": 4.99,
+          "is_default": true,
+          "is_enabled": true
+        }
+      ],
+      "vc_prices": null,
+      "content": [
+        {
+          "sku": "gems",
+          "quantity": 550
+        }
+      ],
+      "limits": {
+        "per_user": null,
+        "per_item": null
+      },
+      "custom_attributes": {
+        "category": "gems"
+      }
+    },
+    {
+      "sku": "gem_pack_l",
+      "name": {
+        "en-US": "Gem Pack — Admiral"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "gems"
+      ],
+      "order": 3,
+      "description": {
+        "en-US": "1,200 Gems + 300 bonus. Best Value! The ultimate gem package for admirals."
+      },
+      "prices": [
+        {
+          "currency": "USD",
+          "amount": 9.99,
+          "is_default": true,
+          "is_enabled": true
+        }
+      ],
+      "vc_prices": null,
+      "content": [
+        {
+          "sku": "gems",
+          "quantity": 1500
+        }
+      ],
+      "limits": {
+        "per_user": null,
+        "per_item": null
+      },
+      "custom_attributes": {
+        "category": "gems"
+      }
+    }
+  ]
+}

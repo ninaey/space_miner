@@ -1,0 +1,616 @@
+{
+  "virtual_currency": [
+    {
+      "sku": "coin",
+      "name": {
+        "en-US": "Gold coin",
+        "de-DE": "Goldmünze"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "gold"
+      ],
+      "order": 1,
+      "description": {
+        "en-US": "The main currency of your kingdom",
+        "de-DE": "Die Hauptwährung deines Königreichs"
+      },
+      "prices": [
+        {
+          "amount": 100,
+          "currency": "USD",
+          "is_enabled": true,
+          "is_default": true
+        }
+      ],
+      "attributes": [
+        {
+          "external_id": "material",
+          "name": {
+            "en-US": "Material"
+          },
+          "values": [
+            {
+              "external_id": "gold",
+              "value": {
+                "en-US": "Gold"
+              }
+            }
+          ]
+        }
+      ],
+      "periods": [
+        {
+          "date_from": "2024-08-11T10:00:00+03:00",
+          "date_until": "2024-08-11T20:00:00+03:00"
+        }
+      ],
+      "custom_attributes": {
+        "purchased": 0,
+        "attr": "value"
+      }
+    },
+    {
+      "sku": "coin_2",
+      "name": {
+        "en-US": "Gold coin",
+        "de-DE": "Goldmünze"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "gold"
+      ],
+      "order": 1,
+      "description": {
+        "en-US": "The main currency of your kingdom",
+        "de-DE": "Die Hauptwährung deines Königreichs"
+      },
+      "prices": [
+        {
+          "amount": 100,
+          "currency": "USD",
+          "is_enabled": true,
+          "is_default": true
+        }
+      ],
+      "attributes": [
+        {
+          "external_id": "material",
+          "name": {
+            "en-US": "Material"
+          },
+          "values": [
+            {
+              "external_id": "gold",
+              "value": {
+                "en-US": "Gold"
+              }
+            }
+          ]
+        }
+      ],
+      "limits": {
+        "per_user": 5,
+        "per_item": 10000
+      },
+      "periods": [
+        {
+          "date_from": "2024-08-11T10:00:00+03:00",
+          "date_until": "2024-08-11T20:00:00+03:00"
+        }
+      ],
+      "custom_attributes": {
+        "purchased": 0,
+        "attr": "value"
+      }
+    }
+  ],
+  "virtual_items": [
+    {
+      "sku": "sword",
+      "name": {
+        "en": "Sword",
+        "de": "Schwert"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "weapons"
+      ],
+      "order": 1,
+      "description": {
+        "en": "A sword is a bladed melee weapon intended for cutting or thrusting that is longer than a knife or dagger, consisting of a long blade attached to a hilt.",
+        "de": "Ein Schwert ist eine Nahkampfwaffe mit Klinge, die zum Schneiden oder Stechen bestimmt ist, länger als ein Messer oder Dolch ist und aus einer langen Klinge besteht, die an einem Griff befestigt ist."
+      },
+      "prices": [
+        {
+          "amount": 100,
+          "currency": "USD",
+          "is_enabled": true,
+          "is_default": true
+        },
+        {
+          "amount": 200,
+          "currency": "CZK",
+          "country_iso": "CZ",
+          "is_enabled": true,
+          "is_default": false
+        }
+      ],
+      "vc_prices": [],
+      "is_show_in_store": true,
+      "attributes": [
+        {
+          "external_id": "craft-materials",
+          "name": {
+            "en": "Craft materials"
+          },
+          "values": [
+            {
+              "external_id": "steel",
+              "value": {
+                "en-US": "5"
+              }
+            },
+            {
+              "external_id": "leather",
+              "value": {
+                "en-US": "1"
+              }
+            }
+          ]
+        }
+      ],
+      "limits": {
+        "per_user": 5,
+        "per_item": 100
+      },
+      "periods": [
+        {
+          "date_from": "2024-08-11T10:00:00+03:00",
+          "date_until": "2024-08-11T20:00:00+03:00"
+        }
+      ],
+      "custom_attributes": {
+        "purchased": 0,
+        "attr": "value"
+      }
+    },
+    {
+      "sku": "sword_2",
+      "name": {
+        "en": "Sword",
+        "de": "Schwert"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "weapons"
+      ],
+      "order": 1,
+      "description": {
+        "en": "A sword is a bladed melee weapon intended for cutting or thrusting that is longer than a knife or dagger, consisting of a long blade attached to a hilt.",
+        "de": "Ein Schwert ist eine Nahkampfwaffe mit Klinge, die zum Schneiden oder Stechen bestimmt ist, länger als ein Messer oder Dolch ist und aus einer langen Klinge besteht, die an einem Griff befestigt ist."
+      },
+      "prices": [
+        {
+          "amount": 100,
+          "currency": "USD",
+          "is_enabled": true,
+          "is_default": true
+        },
+        {
+          "amount": 200,
+          "currency": "CZK",
+          "country_iso": "CZ",
+          "is_enabled": true,
+          "is_default": false
+        }
+      ],
+      "vc_prices": [],
+      "is_show_in_store": true,
+      "attributes": [
+        {
+          "external_id": "craft-materials",
+          "name": {
+            "en": "Craft materials"
+          },
+          "values": [
+            {
+              "external_id": "steel",
+              "value": {
+                "en-US": "5"
+              }
+            },
+            {
+              "external_id": "leather",
+              "value": {
+                "en-US": "1"
+              }
+            }
+          ]
+        }
+      ],
+      "limits": {
+        "per_user": 5,
+        "per_item": 100
+      },
+      "periods": [
+        {
+          "date_from": "2024-08-11T10:00:00+03:00",
+          "date_until": "2024-08-11T20:00:00+03:00"
+        }
+      ],
+      "custom_attributes": {
+        "purchased": 0,
+        "attr": "value"
+      }
+    }
+  ],
+  "virtual_currency_packages": [
+    {
+      "sku": "novigrad_crown_500",
+      "name": {
+        "en-US": "500x Novigradian crown",
+        "ru-RU": "500x Новиградских крон"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "witcher"
+      ],
+      "order": 1,
+      "long_description": {
+        "en-US": "Long Test new",
+        "ru-RU": "Длинное описание"
+      },
+      "description": {
+        "en-US": "The Crown (also known as the Novigradian crown) is a monetary unit which is used in some Northern Kingdoms",
+        "ru-RU": "Крона (Также известна как Новиградская крона) - платежная единица, используемая в северных королевствах"
+      },
+      "image_url": "https://vignette.wikia.nocookie.net/witcher/images/7/7c/Items_Orens.png/revision/latest?cb=20081113120917",
+      "media_list": [
+        {
+          "type": "image",
+          "url": "https://test.com/image0"
+        },
+        {
+          "type": "image",
+          "url": "https://test.com/image1"
+        }
+      ],
+      "attributes": [
+        {
+          "external_id": "event",
+          "name": {
+            "en-US": "Event"
+          },
+          "values": [
+            {
+              "external_id": "10-anniversary",
+              "value": {
+                "en-US": "10th anniversary"
+              }
+            },
+            {
+              "external_id": "christmas",
+              "value": {
+                "en-US": "Christmas"
+              }
+            }
+          ]
+        }
+      ],
+      "prices": [
+        {
+          "currency": "USD",
+          "amount": 99.99,
+          "is_default": true
+        },
+        {
+          "currency": "EUR",
+          "amount": 80.03,
+          "is_enabled": false
+        }
+      ],
+      "vc_prices": null,
+      "content": [
+        {
+          "sku": "coin",
+          "quantity": 500
+        }
+      ],
+      "limits": {
+        "per_user": null,
+        "per_item": null
+      },
+      "periods": [
+        {
+          "date_from": "2024-08-11T10:00:00+03:00",
+          "date_until": "2024-08-11T20:00:00+03:00"
+        }
+      ],
+      "custom_attributes": {
+        "purchased": 0,
+        "attr": "value"
+      }
+    },
+    {
+      "sku": "novigrad_crown_600",
+      "name": {
+        "en-US": "600x Novigradian crown",
+        "ru-RU": "600x Новиградских крон"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "witcher"
+      ],
+      "order": 1,
+      "long_description": {
+        "en-US": "Long Test new",
+        "ru-RU": "Длинное описание"
+      },
+      "description": {
+        "en-US": "The Crown (also known as the Novigradian crown) is a monetary unit which is used in some Northern Kingdoms",
+        "ru-RU": "Крона (Также известна как Новиградская крона) - платежная единица, используемая в северных королевствах"
+      },
+      "image_url": "https://vignette.wikia.nocookie.net/witcher/images/7/7c/Items_Orens.png/revision/latest?cb=20081113120917",
+      "media_list": [
+        {
+          "type": "image",
+          "url": "https://test.com/image0"
+        },
+        {
+          "type": "image",
+          "url": "https://test.com/image1"
+        }
+      ],
+      "attributes": [
+        {
+          "external_id": "event",
+          "name": {
+            "en-US": "Event"
+          },
+          "values": [
+            {
+              "external_id": "10-anniversary",
+              "value": {
+                "en-US": "10th anniversary"
+              }
+            },
+            {
+              "external_id": "christmas",
+              "value": {
+                "en-US": "Christmas"
+              }
+            }
+          ]
+        }
+      ],
+      "prices": [
+        {
+          "currency": "USD",
+          "amount": 99.99,
+          "is_default": true
+        },
+        {
+          "currency": "EUR",
+          "amount": 80.03,
+          "is_enabled": false
+        }
+      ],
+      "vc_prices": null,
+      "content": [
+        {
+          "sku": "coin_2",
+          "quantity": 500
+        }
+      ],
+      "limits": {
+        "per_user": null,
+        "per_item": null
+      },
+      "periods": [
+        {
+          "date_from": "2024-08-11T10:00:00+03:00",
+          "date_until": "2024-08-11T20:00:00+03:00"
+        }
+      ],
+      "custom_attributes": {
+        "purchased": 0,
+        "attr": "value"
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "sku": "weapon_chest",
+      "name": {
+        "en-US": "Chest of weapon",
+        "de-DE": "Brustpanzer"
+      },
+      "is_enabled": true,
+      "is_free": true,
+      "order": 1,
+      "long_description": {
+        "en-US": "Chest of weapon for soldiers",
+        "de-DE": "Brustpanzer für Soldaten"
+      },
+      "description": {
+        "en-US": "Chest of weapon for soldiers",
+        "de-DE": "Brustpanzer für Soldaten"
+      },
+      "image_url": "https://picture.bundle-with-many-stuff.png",
+      "media_list": [
+        {
+          "type": "image",
+          "url": "https://test.com/image0"
+        },
+        {
+          "type": "image",
+          "url": "https://test.com/image1"
+        }
+      ],
+      "groups": [
+        "chests"
+      ],
+      "attributes": [
+        {
+          "external_id": "class",
+          "name": {
+            "en-US": "Class"
+          },
+          "values": [
+            {
+              "external_id": "soldier",
+              "value": {
+                "en-US": "Soldier"
+              }
+            },
+            {
+              "external_id": "officer",
+              "value": {
+                "en-US": "Officer"
+              }
+            }
+          ]
+        }
+      ],
+      "prices": [
+        {
+          "currency": "USD",
+          "amount": 9.99,
+          "is_default": true,
+          "is_enabled": true
+        },
+        {
+          "currency": "EUR",
+          "amount": 9.99,
+          "is_default": false,
+          "is_enabled": true
+        }
+      ],
+      "vc_prices": null,
+      "content": [
+        {
+          "sku": "sword",
+          "quantity": 1
+        },
+        {
+          "sku": "novigrad_crown_500",
+          "quantity": 1
+        }
+      ],
+      "limits": {
+        "per_user": null,
+        "per_item": null
+      },
+      "periods": [
+        {
+          "date_from": "2024-08-11T10:00:00+03:00",
+          "date_until": "2024-08-11T20:00:00+03:00"
+        }
+      ],
+      "custom_attributes": {
+        "type": "lootbox",
+        "purchased": 0
+      }
+    },
+    {
+      "sku": "weapon_chest_2",
+      "name": {
+        "en-US": "Chest of weapon",
+        "de-DE": "Brustpanzer"
+      },
+      "is_enabled": true,
+      "is_free": true,
+      "order": 1,
+      "long_description": {
+        "en-US": "Chest of weapon for soldiers",
+        "de-DE": "Brustpanzer für Soldaten"
+      },
+      "description": {
+        "en-US": "Chest of weapon for soldiers",
+        "de-DE": "Brustpanzer für Soldaten"
+      },
+      "image_url": "https://picture.bundle-with-many-stuff.png",
+      "media_list": [
+        {
+          "type": "image",
+          "url": "https://test.com/image0"
+        },
+        {
+          "type": "image",
+          "url": "https://test.com/image1"
+        }
+      ],
+      "groups": [
+        "chests"
+      ],
+      "attributes": [
+        {
+          "external_id": "class",
+          "name": {
+            "en-US": "Class"
+          },
+          "values": [
+            {
+              "external_id": "soldier",
+              "value": {
+                "en-US": "Soldier"
+              }
+            },
+            {
+              "external_id": "officer",
+              "value": {
+                "en-US": "Officer"
+              }
+            }
+          ]
+        }
+      ],
+      "prices": [
+        {
+          "currency": "USD",
+          "amount": 9.99,
+          "is_default": true,
+          "is_enabled": true
+        },
+        {
+          "currency": "EUR",
+          "amount": 9.99,
+          "is_default": false,
+          "is_enabled": true
+        }
+      ],
+      "vc_prices": null,
+      "content": [
+        {
+          "sku": "sword",
+          "quantity": 1
+        },
+        {
+          "sku": "novigrad_crown_500",
+          "quantity": 1
+        }
+      ],
+      "limits": {
+        "per_user": null,
+        "per_item": null
+      },
+      "periods": [
+        {
+          "date_from": "2024-08-11T10:00:00+03:00",
+          "date_until": "2024-08-11T20:00:00+03:00"
+        }
+      ],
+      "custom_attributes": {
+        "type": "lootbox",
+        "purchased": 0
+      }
+    }
+  ]
+}
