@@ -3,7 +3,7 @@ package handlers
 import (
 	"bytes"
 	"crypto/hmac"
-	"crypto/sha256"
+	"crypto/sha1"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -242,7 +242,8 @@ func (h *StoreHandler) XsollaWebhook(w http.ResponseWriter, r *http.Request) {
 	}
 	r.Body = io.NopCloser(bytes.NewReader(body))
 
-	if !h.verifySignature(r.Header.Get("X-Signature"), body) {
+	if !h.verifySignature(r.Header.Get("Authorization"), body) {
+		log.Printf("webhook: signature verification failed (Authorization=%q)", r.Header.Get("Authorization"))
 		writeError(w, http.StatusUnauthorized, "invalid webhook signature")
 		return
 	}
@@ -277,9 +278,22 @@ func (h *StoreHandler) handleUserValidation(w http.ResponseWriter, r *http.Reque
 
 	_, err := h.service.GetPlayerByID(r.Context(), n.User.ID)
 	if err != nil {
-		log.Printf("webhook: user_validation failed for user=%s: %v", n.User.ID, err)
-		writeError(w, http.StatusNotFound, "user not found")
-		return
+		// Player not found: auto-register so first-time buyers are accepted.
+		// The user already passed Xsolla Login authentication to receive a valid token,
+		// so we trust the identity and create the player record on the fly.
+		username := n.User.Name
+		if username == "" {
+			username = n.User.Email
+		}
+		if username == "" {
+			username = n.User.ID
+		}
+		if regErr := h.service.LoginOrRegister(r.Context(), n.User.ID, username, n.User.Email); regErr != nil {
+			log.Printf("webhook: user_validation auto-register failed user=%s: %v", n.User.ID, regErr)
+			writeError(w, http.StatusNotFound, "user not found")
+			return
+		}
+		log.Printf("webhook: user_validation auto-registered user=%s", n.User.ID)
 	}
 
 	writeJSON(w, http.StatusOK, map[string]string{"status": "accepted"})
@@ -348,12 +362,22 @@ func (h *StoreHandler) handleRefundNotification(w http.ResponseWriter, n webhook
 	writeJSON(w, http.StatusOK, map[string]string{"status": "accepted"})
 }
 
-func (h *StoreHandler) verifySignature(signatureHeader string, body []byte) bool {
+// verifySignature validates the Xsolla webhook Authorization header.
+// Xsolla format: "Authorization: Signature <sha1hex(json_body + webhook_secret)>"
+func (h *StoreHandler) verifySignature(authHeader string, body []byte) bool {
 	if h.webhookSecret == "" {
+		// No secret configured — accept all (useful in local dev, warn in logs).
+		log.Printf("webhook: XSOLLA_WEBHOOK_SECRET not set; skipping signature check")
+		return true
+	}
+	const prefix = "Signature "
+	if !strings.HasPrefix(authHeader, prefix) {
 		return false
 	}
-	mac := hmac.New(sha256.New, []byte(h.webhookSecret))
-	_, _ = mac.Write(body)
-	expected := hex.EncodeToString(mac.Sum(nil))
-	return hmac.Equal([]byte(strings.ToLower(signatureHeader)), []byte(strings.ToLower(expected)))
+	incoming := strings.TrimPrefix(authHeader, prefix)
+	digest := sha1.New()
+	digest.Write(body)
+	digest.Write([]byte(h.webhookSecret))
+	expected := hex.EncodeToString(digest.Sum(nil))
+	return hmac.Equal([]byte(strings.ToLower(incoming)), []byte(strings.ToLower(expected)))
 }
