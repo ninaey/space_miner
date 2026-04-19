@@ -560,7 +560,8 @@ export function Store() {
                 </div>
                 <div style={{ display: 'flex', gap: 10 }}>
                   {featuredItems.map(item => {
-                    const owned = state.purchases.includes(item.sku);
+                    // Gem packs are consumable — they can be bought multiple times
+                    const owned = item.category !== 'gems' && state.purchases.includes(item.sku);
                     return (
                       <div key={item.sku} style={{ flex: 1, background: 'rgba(255,140,0,0.06)', border: '1px solid rgba(255,140,0,0.2)', borderRadius: 14, padding: '12px 10px', textAlign: 'center' }}>
                         <div style={{ fontSize: 32, marginBottom: 6 }}>
@@ -600,7 +601,8 @@ export function Store() {
 
             {/* Full item cards */}
             {getItems().map(item => {
-              const owned = state.purchases.includes(item.sku);
+              // Gem packs are consumable — they can be bought multiple times
+              const owned = item.category !== 'gems' && state.purchases.includes(item.sku);
               const isProcessing = purchasing === item.sku;
               const didBuy = justBought === item.sku;
               const isBestValue = item.sku === 'gem_pack_l';

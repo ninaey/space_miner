@@ -113,9 +113,21 @@ export function AuthScreen() {
           // Xsolla JWT uses "username" as the claim name
           const playerName = claims.username || claims.preferred_username || 'COMMANDER';
 
-          await loginOrRegisterPlayer({ userId, username: playerName, email: claims.email });
+          const loginRes = await loginOrRegisterPlayer({ userId, username: playerName, email: claims.email });
           saveBackendSession(token, userId);
           dispatch({ type: 'LOGIN', playerName });
+
+          // Restore depth + gems from backend so returning players resume at their
+          // correct depth and gem balance; new players get zeros (matching DB defaults).
+          const bs = loginRes.state as Record<string, any> | null | undefined;
+          if (bs) {
+            dispatch({
+              type: 'MERGE_BACKEND_STATE',
+              depth: (bs.game_state?.current_depth as number) ?? 0,
+              gems: (bs.player?.gem_balance as number) ?? 0,
+              storageMax: (bs.game_state?.storage_capacity_kg as number) ?? undefined,
+            });
+          }
 
           // Fetch player's purchased items from the JWT-protected API
           try {

@@ -150,6 +150,10 @@ func (s *Service) FulfillPurchase(ctx context.Context, playerID, sku string, tra
 	}
 
 	if err := s.repo.RecordTransaction(ctx, transactionID, playerID, sku, amount); err != nil {
+		if errors.Is(err, store.ErrDuplicateTransaction) {
+			// Idempotent: webhook already processed for this transaction — skip fulfillment.
+			return nil
+		}
 		return err
 	}
 

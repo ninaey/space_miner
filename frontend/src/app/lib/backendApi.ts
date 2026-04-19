@@ -89,7 +89,7 @@ export function buyGemItem(token: string, sku: string): Promise<{ status: string
   return request<{ status: string }>('/api/store/buy-gem-item', {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${authToken}`,
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ sku }),
   });

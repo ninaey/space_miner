@@ -71,7 +71,8 @@ export type GameAction =
   | { type: 'PURCHASE'; itemId: string; gems?: number }
   | { type: 'SPEND_GEMS'; itemId: string; gemCost: number; effect: string; effectValue?: number; effectDuration?: number }
   | { type: 'SYNCED' }
-  | { type: 'LOAD_STATE'; state: GameState };
+  | { type: 'LOAD_STATE'; state: GameState }
+  | { type: 'MERGE_BACKEND_STATE'; depth: number; gems: number; storageMax?: number };
 
 export const UPGRADES_CONFIG = [
   {
@@ -259,12 +260,12 @@ const initialAchievements: Record<string, AchievementState> = Object.fromEntries
 const initialState: GameState = {
   isAuthenticated: false,
   playerName: '',
-  resources: { iron: 250, copper: 45, silver: 8, diamonds: 0, gold: 120, gems: 25 },
-  totalMined: { iron: 250, copper: 45, silver: 8, diamonds: 0 },
-  totalGoldEarned: 120,
+  resources: { iron: 0, copper: 0, silver: 0, diamonds: 0, gold: 0, gems: 0 },
+  totalMined: { iron: 0, copper: 0, silver: 0, diamonds: 0 },
+  totalGoldEarned: 0,
   storageUsed: 0,
   storageMax: 10000,
-  depth: 185,
+  depth: 0,
   clickPower: 10,
   passiveRate: 5,
   droneSpeed: 1,
@@ -421,6 +422,15 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       }
 
       return { ...newState, achievements: updateAchievements(newState) };
+    }
+    case 'MERGE_BACKEND_STATE': {
+      const mergedState = {
+        ...state,
+        depth: action.depth,
+        resources: { ...state.resources, gems: action.gems },
+        storageMax: action.storageMax ?? state.storageMax,
+      };
+      return { ...mergedState, achievements: updateAchievements(mergedState) };
     }
     case 'SYNCED':
       return { ...state, lastSynced: new Date().toISOString() };

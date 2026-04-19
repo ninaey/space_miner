@@ -13,6 +13,10 @@ import (
 
 var ErrNotFound = errors.New("not found")
 
+// ErrDuplicateTransaction is returned by RecordTransaction when the transaction
+// has already been processed. Callers should treat this as a no-op (idempotent).
+var ErrDuplicateTransaction = errors.New("transaction already processed")
+
 type Repository interface {
 	UpsertPlayerWithInitialState(ctx context.Context, playerID, username, email string) error
 	GetPlayerByID(ctx context.Context, playerID string) (models.Player, error)
@@ -289,12 +293,18 @@ func (s *PostgresStore) ApplyOfflineEarnings(ctx context.Context, playerID strin
 }
 
 func (s *PostgresStore) RecordTransaction(ctx context.Context, transactionID int64, playerID, sku string, amount float64) error {
-	_, err := s.db.Exec(ctx, `
+	tag, err := s.db.Exec(ctx, `
 		INSERT INTO xsolla_transactions (transaction_id, player_id, sku, amount, status)
 		VALUES ($1, $2, $3, $4, 'completed')
 		ON CONFLICT (transaction_id) DO NOTHING
 	`, transactionID, playerID, sku, amount)
-	return err
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrDuplicateTransaction
+	}
+	return nil
 }
 
 func (s *PostgresStore) GrantGems(ctx context.Context, playerID string, amount int) error {
