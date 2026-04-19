@@ -89,9 +89,28 @@ export function buyGemItem(token: string, sku: string): Promise<{ status: string
   return request<{ status: string }>('/api/store/buy-gem-item', {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${authToken}`,
     },
     body: JSON.stringify({ sku }),
+  });
+}
+
+// ── Game Items API ──────────────────────────────────────────
+
+export interface GameItem {
+  name: string;
+  count: number;
+}
+
+export interface GameItemsResponse {
+  items: GameItem[];
+}
+
+export function getGameItems(authToken: string): Promise<GameItemsResponse> {
+  return request<GameItemsResponse>('/api/game/items', {
+    headers: {
+      Authorization: `Bearer ${authToken}`,
+    },
   });
 }
 

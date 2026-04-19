@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import { saveBackendSession, useGame } from '../../context/GameContext';
-import { loginOrRegisterPlayer } from '../../lib/backendApi';
+import { loginOrRegisterPlayer, getGameItems } from '../../lib/backendApi';
 
 /* ── Xsolla config ──────────────────────────────────────────────
    IMPORTANT: There are TWO different IDs in Xsolla — do not mix them up:
@@ -116,6 +116,15 @@ export function AuthScreen() {
           await loginOrRegisterPlayer({ userId, username: playerName, email: claims.email });
           saveBackendSession(token, userId);
           dispatch({ type: 'LOGIN', playerName });
+
+          // Fetch player's purchased items from the JWT-protected API
+          try {
+            const { items } = await getGameItems(token);
+            dispatch({ type: 'SET_PURCHASED_ITEMS', items });
+          } catch {
+            // Non-fatal: items panel will just be empty on first login
+          }
+
           navigate('/game/mine', { replace: true });
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Unexpected login error';

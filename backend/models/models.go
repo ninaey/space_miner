@@ -70,3 +70,8 @@ type SyncPayload struct {
 	Clicks    int `json:"clicks"`
 	DepthGain int `json:"depth_gain"`
 }
+
+type ItemSummary struct {
+	Name  string `json:"name"`
+	Count int    `json:"count"`
+}

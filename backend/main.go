@@ -77,6 +77,7 @@ func main() {
 		r.Use(requireJWT(jwtValidator))
 		r.Route("/api/game", func(gr chi.Router) {
 			gr.Get("/state", gameHandler.GetState)
+			gr.Get("/items", gameHandler.GetItems)
 			gr.Post("/sync", gameHandler.Sync)
 		})
 		r.Post("/api/store/buy-gem-item", storeHandler.BuyGemItem)

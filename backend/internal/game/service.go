@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"math"
+	"sort"
 	"time"
 
 	"spacecolonyminer/backend/models"
@@ -109,6 +110,36 @@ func (s *Service) GetPlayerByID(ctx context.Context, playerID string) (models.Pl
 
 func (s *Service) GetStoreItem(ctx context.Context, sku string) (models.StoreItem, error) {
 	return s.repo.GetStoreItem(ctx, sku)
+}
+
+// GetInventoryItems returns the player's purchased items as a list of {name, count} pairs.
+func (s *Service) GetInventoryItems(ctx context.Context, playerID string) ([]models.ItemSummary, error) {
+	state, err := s.GetFullState(ctx, playerID)
+	if err != nil {
+		return nil, err
+	}
+	catalog, err := s.repo.GetStoreCatalog(ctx)
+	if err != nil {
+		return nil, err
+	}
+	nameMap := make(map[string]string, len(catalog))
+	for _, c := range catalog {
+		nameMap[c.SKU] = c.Name
+	}
+	counts := make(map[string]int)
+	for _, inv := range state.Inventory {
+		counts[inv.ItemSKU]++
+	}
+	result := make([]models.ItemSummary, 0, len(counts))
+	for sku, count := range counts {
+		name := nameMap[sku]
+		if name == "" {
+			name = sku
+		}
+		result = append(result, models.ItemSummary{Name: name, Count: count})
+	}
+	sort.Slice(result, func(i, j int) bool { return result[i].Name < result[j].Name })
+	return result, nil
 }
 
 // FulfillPurchase grants the item/gems for a real-money purchase after PayStation payment.

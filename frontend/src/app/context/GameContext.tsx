@@ -50,11 +50,18 @@ export interface GameState {
   activeBoosts: { id: string; endsAt: number }[];
   hasNeonFrame: boolean;
   lastSynced: string;
+  purchasedItems: PurchasedItem[];
+}
+
+export interface PurchasedItem {
+  name: string;
+  count: number;
 }
 
 export type GameAction =
   | { type: 'LOGIN'; playerName: string }
   | { type: 'LOGOUT' }
+  | { type: 'SET_PURCHASED_ITEMS'; items: PurchasedItem[] }
   | { type: 'MINE'; resource: keyof TotalMined; amount: number; depthGain: number }
   | { type: 'AUTO_MINE' }
   | { type: 'UPGRADE'; upgradeId: keyof UpgradeLevels }
@@ -268,6 +275,7 @@ const initialState: GameState = {
   activeBoosts: [],
   hasNeonFrame: false,
   lastSynced: new Date().toISOString(),
+  purchasedItems: [],
 };
 
 const updateAchievements = (state: GameState): Record<string, AchievementState> => {
@@ -292,6 +300,8 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       return { ...initialState };
     case 'LOAD_STATE':
       return action.state;
+    case 'SET_PURCHASED_ITEMS':
+      return { ...state, purchasedItems: action.items };
     case 'MINE': {
       const newResources = { ...state.resources, [action.resource]: state.resources[action.resource] + action.amount };
       const newTotalMined = { ...state.totalMined, [action.resource]: state.totalMined[action.resource] + action.amount };

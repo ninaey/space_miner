@@ -637,6 +637,19 @@ export function MainHub() {
                   />
                 </div>
               </div>
+              {state.purchasedItems && state.purchasedItems.length > 0 && (
+                <div style={{ marginBottom: 14 }}>
+                  <div style={{ fontFamily: 'Orbitron, sans-serif', color: '#00F2FF80', fontSize: 10, letterSpacing: '0.1em', marginBottom: 8 }}>PURCHASED ITEMS</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {state.purchasedItems.map((item) => (
+                      <div key={item.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', background: 'rgba(0,242,255,0.05)', border: '1px solid rgba(0,242,255,0.15)', borderRadius: 8 }}>
+                        <span style={{ fontFamily: 'Inter, sans-serif', color: '#FFFFFF90', fontSize: 11 }}>{item.name}</span>
+                        <span style={{ fontFamily: 'Orbitron, sans-serif', color: '#00F2FF', fontSize: 11, fontWeight: 700 }}>×{item.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <button
                 onClick={() => { dispatch({ type: 'SELL_ALL' }); setShowInventory(false); }}
                 style={{ display: 'block', width: '100%', padding: '13px', borderRadius: 13, background: 'linear-gradient(135deg,#FF8C00,#FF6B00)', border: 'none', color: '#FFFFFF', fontFamily: 'Orbitron, sans-serif', fontSize: 12, letterSpacing: '0.1em', cursor: 'pointer', boxShadow: '0 0 20px #FF8C0050', lineHeight: '1.4' }}

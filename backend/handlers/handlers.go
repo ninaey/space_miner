@@ -126,6 +126,24 @@ func (h *GameHandler) GetState(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (h *GameHandler) GetItems(w http.ResponseWriter, r *http.Request) {
+	playerID, ok := PlayerIDFromContext(r.Context())
+	if !ok {
+		writeError(w, http.StatusUnauthorized, "missing authenticated player")
+		return
+	}
+
+	items, err := h.service.GetInventoryItems(r.Context(), playerID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"items": items,
+	})
+}
+
 func (h *GameHandler) Sync(w http.ResponseWriter, r *http.Request) {
 	playerID, ok := PlayerIDFromContext(r.Context())
 	if !ok {

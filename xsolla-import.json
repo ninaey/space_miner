@@ -3,7 +3,8 @@
     {
       "sku": "gems",
       "name": {
-        "en-US": "Gems"
+        "en-US": "Gems",
+        "ru-RU": "Кристаллы"
       },
       "is_enabled": true,
       "is_free": false,
@@ -12,7 +13,8 @@
       ],
       "order": 1,
       "description": {
-        "en-US": "Premium currency for the Space Colony. Spend gems on instant boosts, special abilities, and exclusive cosmetics."
+        "en-US": "Premium currency for the Space Colony. Spend gems on instant boosts, special abilities, and exclusive cosmetics.",
+        "ru-RU": "Премиум-валюта Космической колонии. Тратьте кристаллы на мгновенные усиления, особые способности и эксклюзивную косметику."
       },
       "prices": [
         {
@@ -30,7 +32,8 @@
     {
       "sku": "super_drill",
       "name": {
-        "en": "Super Drill Mk. II"
+        "en": "Super Drill Mk. II",
+        "ru": "Супер-дрель Mk. II"
       },
       "is_enabled": true,
       "is_free": false,
@@ -40,7 +43,8 @@
       ],
       "order": 1,
       "description": {
-        "en": "Increases mining speed by 3x forever. The ultimate tool for any serious space miner."
+        "en": "Increases mining speed by 3x forever. The ultimate tool for any serious space miner.",
+        "ru": "Увеличивает скорость добычи в 3 раза навсегда. Лучший инструмент для серьёзного космического шахтёра."
       },
       "prices": [
         {
@@ -48,6 +52,12 @@
           "currency": "USD",
           "is_enabled": true,
           "is_default": true
+        },
+        {
+          "amount": 22.99,
+          "currency": "MYR",
+          "is_enabled": true,
+          "is_default": false
         }
       ],
       "vc_prices": [],
@@ -56,13 +66,15 @@
         {
           "external_id": "effect_type",
           "name": {
-            "en": "Effect Type"
+            "en": "Effect Type",
+            "ru": "Тип эффекта"
           },
           "values": [
             {
               "external_id": "clickBoost",
               "value": {
-                "en": "clickBoost"
+                "en": "clickBoost",
+                "ru": "clickBoost"
               }
             }
           ]
@@ -70,13 +82,15 @@
         {
           "external_id": "effect_value",
           "name": {
-            "en": "Effect Value"
+            "en": "Effect Value",
+            "ru": "Значение эффекта"
           },
           "values": [
             {
               "external_id": "3",
               "value": {
-                "en": "3"
+                "en": "3",
+                "ru": "3"
               }
             }
           ]
@@ -94,7 +108,8 @@
     {
       "sku": "inventory_expander",
       "name": {
-        "en": "Inventory Expander"
+        "en": "Inventory Expander",
+        "ru": "Расширитель инвентаря"
       },
       "is_enabled": true,
       "is_free": false,
@@ -104,7 +119,8 @@
       ],
       "order": 2,
       "description": {
-        "en": "Double your mineral storage capacity. Never lose resources to a full cargo hold again."
+        "en": "Double your mineral storage capacity. Never lose resources to a full cargo hold again.",
+        "ru": "Удвойте ёмкость хранилища минералов. Больше никогда не теряйте ресурсы из-за переполненного трюма."
       },
       "prices": [
         {
@@ -112,6 +128,12 @@
           "currency": "USD",
           "is_enabled": true,
           "is_default": true
+        },
+        {
+          "amount": 13.99,
+          "currency": "MYR",
+          "is_enabled": true,
+          "is_default": false
         }
       ],
       "vc_prices": [],
@@ -120,13 +142,15 @@
         {
           "external_id": "effect_type",
           "name": {
-            "en": "Effect Type"
+            "en": "Effect Type",
+            "ru": "Тип эффекта"
           },
           "values": [
             {
               "external_id": "storageBoost",
               "value": {
-                "en": "storageBoost"
+                "en": "storageBoost",
+                "ru": "storageBoost"
               }
             }
           ]
@@ -134,13 +158,15 @@
         {
           "external_id": "effect_value",
           "name": {
-            "en": "Effect Value"
+            "en": "Effect Value",
+            "ru": "Значение эффекта"
           },
           "values": [
             {
               "external_id": "2",
               "value": {
-                "en": "2"
+                "en": "2",
+                "ru": "2"
               }
             }
           ]
@@ -158,7 +184,8 @@
     {
       "sku": "turbo_drill_boost",
       "name": {
-        "en": "Turbo Drill Boost"
+        "en": "Turbo Drill Boost",
+        "ru": "Турбо-ускоритель дрели"
       },
       "is_enabled": true,
       "is_free": false,
@@ -167,7 +194,8 @@
       ],
       "order": 3,
       "description": {
-        "en": "Instantly triples your click power for the next 100 manual taps. Great for breaking into a new layer fast."
+        "en": "Instantly triples your click power for the next 100 manual taps. Great for breaking into a new layer fast.",
+        "ru": "Мгновенно утраивает силу клика на следующие 100 нажатий. Отлично подходит для быстрого прохода сквозь новый слой."
       },
       "prices": [],
       "vc_prices": [
@@ -182,13 +210,15 @@
         {
           "external_id": "effect_type",
           "name": {
-            "en": "Effect Type"
+            "en": "Effect Type",
+            "ru": "Тип эффекта"
           },
           "values": [
             {
               "external_id": "clickBoost",
               "value": {
-                "en": "clickBoost"
+                "en": "clickBoost",
+                "ru": "clickBoost"
               }
             }
           ]
@@ -196,13 +226,15 @@
         {
           "external_id": "effect_value",
           "name": {
-            "en": "Effect Value"
+            "en": "Effect Value",
+            "ru": "Значение эффекта"
           },
           "values": [
             {
               "external_id": "3",
               "value": {
-                "en": "3"
+                "en": "3",
+                "ru": "3"
               }
             }
           ]
@@ -210,13 +242,15 @@
         {
           "external_id": "effect_duration",
           "name": {
-            "en": "Effect Duration"
+            "en": "Effect Duration",
+            "ru": "Длительность эффекта"
           },
           "values": [
             {
               "external_id": "100",
               "value": {
-                "en": "100"
+                "en": "100",
+                "ru": "100"
               }
             }
           ]
@@ -233,7 +267,8 @@
     {
       "sku": "depth_dive",
       "name": {
-        "en": "Depth Dive"
+        "en": "Depth Dive",
+        "ru": "Погружение в глубину"
       },
       "is_enabled": true,
       "is_free": false,
@@ -242,7 +277,8 @@
       ],
       "order": 4,
       "description": {
-        "en": "Skip ahead +250m instantly. Jump straight into the next geological layer without grinding."
+        "en": "Skip ahead +250m instantly. Jump straight into the next geological layer without grinding.",
+        "ru": "Мгновенный прыжок на +250 м. Переходите к следующему геологическому слою без монотонной прокачки."
       },
       "prices": [],
       "vc_prices": [
@@ -257,13 +293,15 @@
         {
           "external_id": "effect_type",
           "name": {
-            "en": "Effect Type"
+            "en": "Effect Type",
+            "ru": "Тип эффекта"
           },
           "values": [
             {
               "external_id": "depthBoost",
               "value": {
-                "en": "depthBoost"
+                "en": "depthBoost",
+                "ru": "depthBoost"
               }
             }
           ]
@@ -271,13 +309,15 @@
         {
           "external_id": "effect_value",
           "name": {
-            "en": "Effect Value"
+            "en": "Effect Value",
+            "ru": "Значение эффекта"
           },
           "values": [
             {
               "external_id": "250",
               "value": {
-                "en": "250"
+                "en": "250",
+                "ru": "250"
               }
             }
           ]
@@ -294,7 +334,8 @@
     {
       "sku": "drone_overclock",
       "name": {
-        "en": "Drone Overclock"
+        "en": "Drone Overclock",
+        "ru": "Разгон дронов"
       },
       "is_enabled": true,
       "is_free": false,
@@ -303,7 +344,8 @@
       ],
       "order": 5,
       "description": {
-        "en": "All drones mine at 4x speed for 60 seconds. Massive passive income surge."
+        "en": "All drones mine at 4x speed for 60 seconds. Massive passive income surge.",
+        "ru": "Все дроны добывают в 4 раза быстрее в течение 60 секунд. Колоссальный всплеск пассивного дохода."
       },
       "prices": [],
       "vc_prices": [
@@ -318,13 +360,15 @@
         {
           "external_id": "effect_type",
           "name": {
-            "en": "Effect Type"
+            "en": "Effect Type",
+            "ru": "Тип эффекта"
           },
           "values": [
             {
               "external_id": "droneBoost",
               "value": {
-                "en": "droneBoost"
+                "en": "droneBoost",
+                "ru": "droneBoost"
               }
             }
           ]
@@ -332,13 +376,15 @@
         {
           "external_id": "effect_value",
           "name": {
-            "en": "Effect Value"
+            "en": "Effect Value",
+            "ru": "Значение эффекта"
           },
           "values": [
             {
               "external_id": "4",
               "value": {
-                "en": "4"
+                "en": "4",
+                "ru": "4"
               }
             }
           ]
@@ -346,13 +392,15 @@
         {
           "external_id": "effect_duration",
           "name": {
-            "en": "Effect Duration"
+            "en": "Effect Duration",
+            "ru": "Длительность эффекта"
           },
           "values": [
             {
               "external_id": "60",
               "value": {
-                "en": "60"
+                "en": "60",
+                "ru": "60"
               }
             }
           ]
@@ -369,7 +417,8 @@
     {
       "sku": "mega_mine_burst",
       "name": {
-        "en": "Mega Mine Burst"
+        "en": "Mega Mine Burst",
+        "ru": "Мега-взрыв шахты"
       },
       "is_enabled": true,
       "is_free": false,
@@ -378,7 +427,8 @@
       ],
       "order": 6,
       "description": {
-        "en": "Instantly mine 500x your current click power in one explosion. One-time use per purchase."
+        "en": "Instantly mine 500x your current click power in one explosion. One-time use per purchase.",
+        "ru": "Мгновенно добывает 500-кратную силу клика за один взрыв. Одноразовое использование на покупку."
       },
       "prices": [],
       "vc_prices": [
@@ -393,13 +443,15 @@
         {
           "external_id": "effect_type",
           "name": {
-            "en": "Effect Type"
+            "en": "Effect Type",
+            "ru": "Тип эффекта"
           },
           "values": [
             {
               "external_id": "mineBurst",
               "value": {
-                "en": "mineBurst"
+                "en": "mineBurst",
+                "ru": "mineBurst"
               }
             }
           ]
@@ -407,13 +459,15 @@
         {
           "external_id": "effect_value",
           "name": {
-            "en": "Effect Value"
+            "en": "Effect Value",
+            "ru": "Значение эффекта"
           },
           "values": [
             {
               "external_id": "500",
               "value": {
-                "en": "500"
+                "en": "500",
+                "ru": "500"
               }
             }
           ]
@@ -430,7 +484,8 @@
     {
       "sku": "auto_sell_module",
       "name": {
-        "en": "Auto-Sell Module"
+        "en": "Auto-Sell Module",
+        "ru": "Модуль авто-продажи"
       },
       "is_enabled": true,
       "is_free": false,
@@ -439,7 +494,8 @@
       ],
       "order": 7,
       "description": {
-        "en": "Automatically sells all minerals every 30 seconds for 5 minutes. Sit back and watch gold roll in."
+        "en": "Automatically sells all minerals every 30 seconds for 5 minutes. Sit back and watch gold roll in.",
+        "ru": "Автоматически продаёт все минералы каждые 30 секунд в течение 5 минут. Расслабьтесь и наблюдайте, как прибывает золото."
       },
       "prices": [],
       "vc_prices": [
@@ -454,13 +510,15 @@
         {
           "external_id": "effect_type",
           "name": {
-            "en": "Effect Type"
+            "en": "Effect Type",
+            "ru": "Тип эффекта"
           },
           "values": [
             {
               "external_id": "autoSell",
               "value": {
-                "en": "autoSell"
+                "en": "autoSell",
+                "ru": "autoSell"
               }
             }
           ]
@@ -468,13 +526,15 @@
         {
           "external_id": "effect_duration",
           "name": {
-            "en": "Effect Duration"
+            "en": "Effect Duration",
+            "ru": "Длительность эффекта"
           },
           "values": [
             {
               "external_id": "300",
               "value": {
-                "en": "300"
+                "en": "300",
+                "ru": "300"
               }
             }
           ]
@@ -491,7 +551,8 @@
     {
       "sku": "storage_purge",
       "name": {
-        "en": "Storage Purge Protocol"
+        "en": "Storage Purge Protocol",
+        "ru": "Протокол очистки хранилища"
       },
       "is_enabled": true,
       "is_free": false,
@@ -500,7 +561,8 @@
       ],
       "order": 8,
       "description": {
-        "en": "Sell everything in your cargo hold instantly at 2x market value. One-time emergency cash-out."
+        "en": "Sell everything in your cargo hold instantly at 2x market value. One-time emergency cash-out.",
+        "ru": "Мгновенно продайте всё содержимое трюма по двойной рыночной цене. Экстренная разовая продажа."
       },
       "prices": [],
       "vc_prices": [
@@ -515,13 +577,15 @@
         {
           "external_id": "effect_type",
           "name": {
-            "en": "Effect Type"
+            "en": "Effect Type",
+            "ru": "Тип эффекта"
           },
           "values": [
             {
               "external_id": "doubleSell",
               "value": {
-                "en": "doubleSell"
+                "en": "doubleSell",
+                "ru": "doubleSell"
               }
             }
           ]
@@ -529,13 +593,15 @@
         {
           "external_id": "effect_value",
           "name": {
-            "en": "Effect Value"
+            "en": "Effect Value",
+            "ru": "Значение эффекта"
           },
           "values": [
             {
               "external_id": "2",
               "value": {
-                "en": "2"
+                "en": "2",
+                "ru": "2"
               }
             }
           ]
@@ -552,7 +618,8 @@
     {
       "sku": "neon_commander_frame",
       "name": {
-        "en": "Neon Commander Frame"
+        "en": "Neon Commander Frame",
+        "ru": "Рамка Неонового Командора"
       },
       "is_enabled": true,
       "is_free": false,
@@ -562,7 +629,8 @@
       ],
       "order": 9,
       "description": {
-        "en": "Unlock the exclusive Neon Commander avatar frame. Purely cosmetic — flex on other colonists."
+        "en": "Unlock the exclusive Neon Commander avatar frame. Purely cosmetic — flex on other colonists.",
+        "ru": "Разблокируйте эксклюзивную рамку аватара Неонового Командора. Чисто косметическая — похвастайтесь перед другими колонистами."
       },
       "prices": [],
       "vc_prices": [
@@ -577,13 +645,15 @@
         {
           "external_id": "effect_type",
           "name": {
-            "en": "Effect Type"
+            "en": "Effect Type",
+            "ru": "Тип эффекта"
           },
           "values": [
             {
               "external_id": "cosmetic",
               "value": {
-                "en": "cosmetic"
+                "en": "cosmetic",
+                "ru": "cosmetic"
               }
             }
           ]
@@ -603,7 +673,8 @@
     {
       "sku": "gem_pack_s",
       "name": {
-        "en-US": "Gem Pack — Rookie"
+        "en-US": "Gem Pack — Rookie",
+        "ru-RU": "Набор кристаллов — Новичок"
       },
       "is_enabled": true,
       "is_free": false,
@@ -612,13 +683,20 @@
       ],
       "order": 1,
       "description": {
-        "en-US": "100 Gems for your colony. A great starter pack for new commanders."
+        "en-US": "100 Gems for your colony. A great starter pack for new commanders.",
+        "ru-RU": "100 кристаллов для вашей колонии. Отличный стартовый набор для новых командоров."
       },
       "prices": [
         {
           "currency": "USD",
           "amount": 0.99,
           "is_default": true,
+          "is_enabled": true
+        },
+        {
+          "currency": "MYR",
+          "amount": 4.99,
+          "is_default": false,
           "is_enabled": true
         }
       ],
@@ -640,7 +718,8 @@
     {
       "sku": "gem_pack_m",
       "name": {
-        "en-US": "Gem Pack — Commander"
+        "en-US": "Gem Pack — Commander",
+        "ru-RU": "Набор кристаллов — Командор"
       },
       "is_enabled": true,
       "is_free": false,
@@ -649,13 +728,20 @@
       ],
       "order": 2,
       "description": {
-        "en-US": "500 Gems + 50 bonus gems! The smart choice for active miners."
+        "en-US": "500 Gems + 50 bonus gems! The smart choice for active miners.",
+        "ru-RU": "500 кристаллов + 50 бонусных кристаллов! Умный выбор для активных шахтёров."
       },
       "prices": [
         {
           "currency": "USD",
           "amount": 4.99,
           "is_default": true,
+          "is_enabled": true
+        },
+        {
+          "currency": "MYR",
+          "amount": 22.99,
+          "is_default": false,
           "is_enabled": true
         }
       ],
@@ -677,7 +763,8 @@
     {
       "sku": "gem_pack_l",
       "name": {
-        "en-US": "Gem Pack — Admiral"
+        "en-US": "Gem Pack — Admiral",
+        "ru-RU": "Набор кристаллов — Адмирал"
       },
       "is_enabled": true,
       "is_free": false,
@@ -686,13 +773,20 @@
       ],
       "order": 3,
       "description": {
-        "en-US": "1,200 Gems + 300 bonus. Best Value! The ultimate gem package for admirals."
+        "en-US": "1,200 Gems + 300 bonus. Best Value! The ultimate gem package for admirals.",
+        "ru-RU": "1200 кристаллов + 300 бонусных. Лучшая цена! Максимальный набор кристаллов для адмиралов."
       },
       "prices": [
         {
           "currency": "USD",
           "amount": 9.99,
           "is_default": true,
+          "is_enabled": true
+        },
+        {
+          "currency": "MYR",
+          "amount": 46.99,
+          "is_default": false,
           "is_enabled": true
         }
       ],
