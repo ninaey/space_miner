@@ -5,6 +5,8 @@ services:
       dockerfile: Dockerfile
     image: ${APP_IMAGE:-spacecolonyminer:latest}
     restart: unless-stopped
+    env_file:
+      - ./backend/.env
     depends_on:
       postgres:
         condition: service_healthy
@@ -14,15 +16,6 @@ services:
       PORT: "8080"
       STATIC_DIR: "/app/public"
       DATABASE_URL: "postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-spaceminergame}?sslmode=disable"
-      ALLOWED_ORIGINS: "${ALLOWED_ORIGINS:-*}"
-      XSOLLA_JWKS_URL: "${XSOLLA_JWKS_URL:-}"
-      XSOLLA_ISSUER: "${XSOLLA_ISSUER:-}"
-      XSOLLA_AUDIENCE: "${XSOLLA_AUDIENCE:-}"
-      XSOLLA_PROJECT_ID: "${XSOLLA_PROJECT_ID:-}"
-      XSOLLA_MERCHANT_ID: "${XSOLLA_MERCHANT_ID:-}"
-      XSOLLA_API_KEY: "${XSOLLA_API_KEY:-}"
-      XSOLLA_CATALOG_URL: "${XSOLLA_CATALOG_URL:-}"
-      XSOLLA_WEBHOOK_SECRET: "${XSOLLA_WEBHOOK_SECRET:-}"
 
   postgres:
     image: postgres:16-alpine
