@@ -35,7 +35,7 @@ export interface LoginResponse {
 }
 
 export function loginOrRegisterPlayer(payload: LoginPayload): Promise<LoginResponse> {
-  return request<LoginResponse>('/auth/login', {
+  return request<LoginResponse>('/api/auth/login', {
     method: 'POST',
     body: JSON.stringify({
       user_id: payload.userId,
@@ -46,7 +46,7 @@ export function loginOrRegisterPlayer(payload: LoginPayload): Promise<LoginRespo
 }
 
 export function syncGameProgress(token: string, payload: { clicks: number; depth_gain: number }): Promise<{ status: string }> {
-  return request<{ status: string }>('/game/sync', {
+  return request<{ status: string }>('/api/game/sync', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -80,13 +80,13 @@ export interface CatalogResponse {
 }
 
 export function fetchStoreCatalog(): Promise<CatalogResponse> {
-  return request<CatalogResponse>('/store/catalog');
+  return request<CatalogResponse>('/api/store/catalog');
 }
 
 // ── Gem purchase API ────────────────────────────────────────
 
 export function buyGemItem(token: string, sku: string): Promise<{ status: string }> {
-  return request<{ status: string }>('/store/buy-gem-item', {
+  return request<{ status: string }>('/api/store/buy-gem-item', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -103,7 +103,7 @@ export interface CreatePaymentResponse {
 }
 
 export function createPayment(authToken: string, sku: string): Promise<CreatePaymentResponse> {
-  return request<CreatePaymentResponse>('/store/create-payment', {
+  return request<CreatePaymentResponse>('/api/store/create-payment', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${authToken}`,

@@ -63,24 +63,24 @@ func main() {
 		_, _ = w.Write([]byte("ok"))
 	})
 
-	router.Route("/auth", func(r chi.Router) {
+	router.Route("/api/auth", func(r chi.Router) {
 		r.Post("/login", authHandler.Login)
 		r.Post("/register", authHandler.Register)
 	})
 
-	router.Route("/store", func(r chi.Router) {
+	router.Route("/api/store", func(r chi.Router) {
 		r.Get("/catalog", storeHandler.GetCatalog)
 		r.Post("/webhook/xsolla", storeHandler.XsollaWebhook)
 	})
 
 	router.Group(func(r chi.Router) {
 		r.Use(requireJWT(jwtValidator))
-		r.Route("/game", func(gr chi.Router) {
+		r.Route("/api/game", func(gr chi.Router) {
 			gr.Get("/state", gameHandler.GetState)
 			gr.Post("/sync", gameHandler.Sync)
 		})
-		r.Post("/store/buy-gem-item", storeHandler.BuyGemItem)
-		r.Post("/store/create-payment", storeHandler.CreatePayment)
+		r.Post("/api/store/buy-gem-item", storeHandler.BuyGemItem)
+		r.Post("/api/store/create-payment", storeHandler.CreatePayment)
 	})
 
 	configureStaticHosting(router, cfg.StaticDir)
