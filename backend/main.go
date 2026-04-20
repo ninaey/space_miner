@@ -1,3 +1,21 @@
+// @title           Space Colony Miner API
+// @version         1.0
+// @description     Backend API for Space Colony Miner — an idle clicker game with an Xsolla-powered store.
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name   Space Colony Miner Dev
+// @contact.email  dev@spacecolonyminer.local
+
+// @license.name  MIT
+
+// @host      localhost:8080
+// @BasePath  /
+
+// @securityDefinitions.apikey  BearerAuth
+// @in                          header
+// @name                        Authorization
+// @description                 Xsolla JWT — format: "Bearer <token>"
+
 package main
 
 import (
@@ -12,6 +30,7 @@ import (
 	"syscall"
 	"time"
 
+	_ "spacecolonyminer/backend/docs"
 	"spacecolonyminer/backend/handlers"
 	"spacecolonyminer/backend/internal/config"
 	"spacecolonyminer/backend/internal/game"
@@ -19,6 +38,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
@@ -62,6 +82,10 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("ok"))
 	})
+
+	router.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("/swagger/doc.json"),
+	))
 
 	router.Route("/api/auth", func(r chi.Router) {
 		r.Post("/login", authHandler.Login)

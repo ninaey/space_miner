@@ -66,9 +66,10 @@ type FullGameState struct {
 	ActiveBoosts []ActiveBoost         `json:"active_boosts"`
 }
 
+// SyncPayload is the body for POST /api/game/sync.
 type SyncPayload struct {
-	Clicks    int `json:"clicks"`
-	DepthGain int `json:"depth_gain"`
+	Clicks    int `json:"clicks"     example:"42"`
+	DepthGain int `json:"depth_gain" example:"10"`
 }
 
 type ItemSummary struct {

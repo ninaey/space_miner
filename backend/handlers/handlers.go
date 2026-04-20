@@ -60,10 +60,32 @@ func NewStoreHandler(service *game.Service, catalogURL, webhookSecret string, pr
 	}
 }
 
+// Login godoc
+// @Summary      Login or register a player
+// @Description  Creates a new player account or logs in an existing one. Returns full game state and applies offline earnings.
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        body  body      authRequest  true  "Auth credentials"
+// @Success      200   {object}  map[string]any  "player_id and full game state"
+// @Failure      400   {object}  APIError
+// @Failure      500   {object}  APIError
+// @Router       /api/auth/login [post]
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	h.upsertPlayer(w, r)
 }
 
+// Register godoc
+// @Summary      Register a new player
+// @Description  Alias for Login — upserts the player record and returns their full game state.
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        body  body      authRequest  true  "Registration details"
+// @Success      200   {object}  map[string]any  "player_id and full game state"
+// @Failure      400   {object}  APIError
+// @Failure      500   {object}  APIError
+// @Router       /api/auth/register [post]
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	h.upsertPlayer(w, r)
 }
@@ -101,6 +123,16 @@ func (h *AuthHandler) upsertPlayer(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// GetState godoc
+// @Summary      Get player game state
+// @Description  Returns the full game state for the authenticated player, including offline earnings applied since last sync.
+// @Tags         game
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  map[string]any  "offline_depth_gain and full state"
+// @Failure      401  {object}  APIError
+// @Failure      500  {object}  APIError
+// @Router       /api/game/state [get]
 func (h *GameHandler) GetState(w http.ResponseWriter, r *http.Request) {
 	playerID, ok := PlayerIDFromContext(r.Context())
 	if !ok {
@@ -126,6 +158,16 @@ func (h *GameHandler) GetState(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// GetItems godoc
+// @Summary      Get player inventory
+// @Description  Returns all inventory items owned by the authenticated player.
+// @Tags         game
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  map[string]any  "list of inventory items"
+// @Failure      401  {object}  APIError
+// @Failure      500  {object}  APIError
+// @Router       /api/game/items [get]
 func (h *GameHandler) GetItems(w http.ResponseWriter, r *http.Request) {
 	playerID, ok := PlayerIDFromContext(r.Context())
 	if !ok {
@@ -144,6 +186,19 @@ func (h *GameHandler) GetItems(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// Sync godoc
+// @Summary      Sync game progress
+// @Description  Submits click and depth-gain data from the client. Anti-cheat validation is applied server-side.
+// @Tags         game
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        body  body      models.SyncPayload  true  "Progress payload"
+// @Success      200   {object}  map[string]string   "status: synced"
+// @Failure      400   {object}  APIError
+// @Failure      401   {object}  APIError
+// @Failure      403   {object}  APIError  "Anti-cheat violation"
+// @Router       /api/game/sync [post]
 func (h *GameHandler) Sync(w http.ResponseWriter, r *http.Request) {
 	playerID, ok := PlayerIDFromContext(r.Context())
 	if !ok {
@@ -170,6 +225,14 @@ func (h *GameHandler) Sync(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"status": "synced"})
 }
 
+// GetCatalog godoc
+// @Summary      Get store catalog
+// @Description  Returns all available store items. Tries the Xsolla catalog API first, falls back to the local database. Source is indicated by the "source" field.
+// @Tags         store
+// @Produce      json
+// @Success      200  {object}  map[string]any  "source and list of CatalogItems"
+// @Failure      500  {object}  APIError
+// @Router       /api/store/catalog [get]
 func (h *StoreHandler) GetCatalog(w http.ResponseWriter, r *http.Request) {
 	// Try Xsolla Catalog API first (with 5-min cache)
 	if h.catalogFetcher != nil {
@@ -227,6 +290,18 @@ func (h *StoreHandler) GetCatalog(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// BuyGemItem godoc
+// @Summary      Purchase a gem-priced item
+// @Description  Deducts gems from the authenticated player's balance and grants the requested item.
+// @Tags         store
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        body  body      buyGemItemRequest  true  "Item SKU to purchase"
+// @Success      200   {object}  map[string]string  "status: purchased"
+// @Failure      400   {object}  APIError
+// @Failure      401   {object}  APIError
+// @Router       /api/store/buy-gem-item [post]
 func (h *StoreHandler) BuyGemItem(w http.ResponseWriter, r *http.Request) {
 	playerID, ok := PlayerIDFromContext(r.Context())
 	if !ok {
@@ -252,6 +327,18 @@ func (h *StoreHandler) BuyGemItem(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"status": "purchased"})
 }
 
+// XsollaWebhook godoc
+// @Summary      Xsolla payment webhook
+// @Description  Receives Xsolla payment notifications (user_validation, payment, refund). The request must carry a valid HMAC-SHA1 Signature header.
+// @Tags         store
+// @Accept       json
+// @Produce      json
+// @Param        Authorization  header    string  true  "Signature <sha1hex>"
+// @Param        body           body      webhookNotification  true  "Xsolla notification payload"
+// @Success      200            {object}  map[string]string  "status: accepted"
+// @Failure      400            {object}  APIError
+// @Failure      401            {object}  APIError
+// @Router       /api/store/webhook/xsolla [post]
 func (h *StoreHandler) XsollaWebhook(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -288,6 +375,7 @@ func (h *StoreHandler) XsollaWebhook(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// login or register the user if they don't exist
 func (h *StoreHandler) handleUserValidation(w http.ResponseWriter, r *http.Request, n webhookNotification) {
 	if n.User == nil || n.User.ID == "" {
 		writeError(w, http.StatusBadRequest, "missing user ID")
@@ -298,7 +386,7 @@ func (h *StoreHandler) handleUserValidation(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		// Player not found: auto-register so first-time buyers are accepted.
 		// The user already passed Xsolla Login authentication to receive a valid token,
-		// so we trust the identity and create the player record on the fly.
+		// so we trust the identity and create the player record on the first purchase.
 		username := n.User.Name
 		if username == "" {
 			username = n.User.Email
@@ -317,6 +405,7 @@ func (h *StoreHandler) handleUserValidation(w http.ResponseWriter, r *http.Reque
 	writeJSON(w, http.StatusOK, map[string]string{"status": "accepted"})
 }
 
+// ── Payment Notification ────────
 func (h *StoreHandler) handlePaymentNotification(w http.ResponseWriter, r *http.Request, n webhookNotification) {
 	if n.User == nil || n.User.ID == "" {
 		writeError(w, http.StatusBadRequest, "missing user in payment notification")
@@ -373,6 +462,7 @@ func (h *StoreHandler) handlePaymentNotification(w http.ResponseWriter, r *http.
 	writeJSON(w, http.StatusOK, map[string]string{"status": "accepted"})
 }
 
+// ── Refund Notification ────────
 func (h *StoreHandler) handleRefundNotification(w http.ResponseWriter, n webhookNotification) {
 	if n.Transaction != nil {
 		log.Printf("webhook: refund received for txn=%d user=%s", n.Transaction.ID, n.User.ID)

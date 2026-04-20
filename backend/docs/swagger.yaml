@@ -1,0 +1,424 @@
+basePath: /
+definitions:
+  handlers.APIError:
+    properties:
+      error:
+        example: something went wrong
+        type: string
+    type: object
+  handlers.authRequest:
+    properties:
+      email:
+        example: miner@space.io
+        type: string
+      user_id:
+        example: user-abc-123
+        type: string
+      username:
+        example: AstroMiner42
+        type: string
+    type: object
+  handlers.buyGemItemRequest:
+    properties:
+      sku:
+        example: drill_upgrade_basic
+        type: string
+    type: object
+  handlers.createPaymentRequest:
+    properties:
+      sku:
+        type: string
+    type: object
+  handlers.webhookNotification:
+    properties:
+      notification_type:
+        type: string
+      purchase:
+        $ref: '#/definitions/handlers.webhookPurchase'
+      transaction:
+        $ref: '#/definitions/handlers.webhookTransaction'
+      user:
+        $ref: '#/definitions/handlers.webhookUser'
+    type: object
+  handlers.webhookPurchase:
+    properties:
+      total:
+        $ref: '#/definitions/handlers.webhookTotal'
+      virtual_currency:
+        $ref: '#/definitions/handlers.webhookVCPurchase'
+      virtual_items:
+        $ref: '#/definitions/handlers.webhookVirtualItems'
+    type: object
+  handlers.webhookTotal:
+    properties:
+      amount:
+        type: number
+      currency:
+        type: string
+    type: object
+  handlers.webhookTransaction:
+    properties:
+      amount:
+        type: number
+      currency:
+        type: string
+      dry_run:
+        type: integer
+      external_id:
+        type: string
+      id:
+        type: integer
+      payment_date:
+        type: string
+      payment_method:
+        type: integer
+    type: object
+  handlers.webhookUser:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  handlers.webhookVCPurchase:
+    properties:
+      amount:
+        type: number
+      currency:
+        type: string
+      name:
+        type: string
+      quantity:
+        type: number
+      sku:
+        type: string
+    type: object
+  handlers.webhookVItem:
+    properties:
+      quantity:
+        type: integer
+      sku:
+        type: string
+    type: object
+  handlers.webhookVirtualItems:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/handlers.webhookVItem'
+        type: array
+    type: object
+  models.SyncPayload:
+    properties:
+      clicks:
+        example: 42
+        type: integer
+      depth_gain:
+        example: 10
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: dev@spacecolonyminer.local
+    name: Space Colony Miner Dev
+  description: Backend API for Space Colony Miner — an idle clicker game with an Xsolla-powered
+    store.
+  license:
+    name: MIT
+  termsOfService: http://swagger.io/terms/
+  title: Space Colony Miner API
+  version: "1.0"
+paths:
+  /api/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new player account or logs in an existing one. Returns
+        full game state and applies offline earnings.
+      parameters:
+      - description: Auth credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.authRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: player_id and full game state
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.APIError'
+      summary: Login or register a player
+      tags:
+      - auth
+  /api/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Alias for Login — upserts the player record and returns their full
+        game state.
+      parameters:
+      - description: Registration details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.authRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: player_id and full game state
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.APIError'
+      summary: Register a new player
+      tags:
+      - auth
+  /api/game/items:
+    get:
+      description: Returns all inventory items owned by the authenticated player.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: list of inventory items
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.APIError'
+      security:
+      - BearerAuth: []
+      summary: Get player inventory
+      tags:
+      - game
+  /api/game/state:
+    get:
+      description: Returns the full game state for the authenticated player, including
+        offline earnings applied since last sync.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: offline_depth_gain and full state
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.APIError'
+      security:
+      - BearerAuth: []
+      summary: Get player game state
+      tags:
+      - game
+  /api/game/sync:
+    post:
+      consumes:
+      - application/json
+      description: Submits click and depth-gain data from the client. Anti-cheat validation
+        is applied server-side.
+      parameters:
+      - description: Progress payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.SyncPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'status: synced'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.APIError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.APIError'
+        "403":
+          description: Anti-cheat violation
+          schema:
+            $ref: '#/definitions/handlers.APIError'
+      security:
+      - BearerAuth: []
+      summary: Sync game progress
+      tags:
+      - game
+  /api/store/buy-gem-item:
+    post:
+      consumes:
+      - application/json
+      description: Deducts gems from the authenticated player's balance and grants
+        the requested item.
+      parameters:
+      - description: Item SKU to purchase
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.buyGemItemRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'status: purchased'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.APIError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.APIError'
+      security:
+      - BearerAuth: []
+      summary: Purchase a gem-priced item
+      tags:
+      - store
+  /api/store/catalog:
+    get:
+      description: Returns all available store items. Tries the Xsolla catalog API
+        first, falls back to the local database. Source is indicated by the "source"
+        field.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: source and list of CatalogItems
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.APIError'
+      summary: Get store catalog
+      tags:
+      - store
+  /api/store/create-payment:
+    post:
+      consumes:
+      - application/json
+      description: Calls the Xsolla v3 Admin Token API to obtain a PayStation URL
+        token for the given SKU. The returned token can be used to open the Xsolla
+        payment widget.
+      parameters:
+      - description: SKU to purchase
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.createPaymentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: token and order_id
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.APIError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.APIError'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/handlers.APIError'
+      security:
+      - BearerAuth: []
+      summary: Create a PayStation payment token
+      tags:
+      - store
+  /api/store/webhook/xsolla:
+    post:
+      consumes:
+      - application/json
+      description: Receives Xsolla payment notifications (user_validation, payment,
+        refund). The request must carry a valid HMAC-SHA1 Signature header.
+      parameters:
+      - description: Signature <sha1hex>
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Xsolla notification payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.webhookNotification'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'status: accepted'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.APIError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.APIError'
+      summary: Xsolla payment webhook
+      tags:
+      - store
+securityDefinitions:
+  BearerAuth:
+    description: 'Xsolla JWT — format: "Bearer <token>"'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

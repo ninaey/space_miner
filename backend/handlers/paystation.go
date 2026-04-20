@@ -65,7 +65,19 @@ type xsollaErrorResponse struct {
 	ErrorMessage string `json:"errorMessage"`
 }
 
-// CreatePayment creates a PayStation token via Xsolla v3 Admin Payment Token API.
+// CreatePayment godoc
+// @Summary      Create a PayStation payment token
+// @Description  Calls the Xsolla v3 Admin Token API to obtain a PayStation URL token for the given SKU. The returned token can be used to open the Xsolla payment widget.
+// @Tags         store
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        body  body      createPaymentRequest  true  "SKU to purchase"
+// @Success      200   {object}  map[string]any        "token and order_id"
+// @Failure      400   {object}  APIError
+// @Failure      401   {object}  APIError
+// @Failure      502   {object}  APIError
+// @Router       /api/store/create-payment [post]
 func (h *StoreHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
 	playerID, ok := PlayerIDFromContext(r.Context())
 	if !ok {
