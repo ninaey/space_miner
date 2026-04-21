@@ -58,29 +58,15 @@ docker_build_push:
   rules:
     - if: $CI_COMMIT_BRANCH
 
-docker_compose_deploy:
+render_deploy:
   stage: deploy
   image: alpine:3.21
   needs:
-    - docker_build_push
-  before_script:
-    - apk add --no-cache openssh-client
-    - mkdir -p ~/.ssh
-    - echo "$DEPLOY_SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
-    - chmod 600 ~/.ssh/id_ed25519
+    - docker_ci_checks
   script:
-    - test -n "$DEPLOY_SSH_HOST"
-    - test -n "$DEPLOY_SSH_USER"
-    - ssh -o StrictHostKeyChecking=no "$DEPLOY_SSH_USER@$DEPLOY_SSH_HOST" "mkdir -p $DEPLOY_PATH/backend/migrations"
-    - scp -o StrictHostKeyChecking=no docker-compose.yml "$DEPLOY_SSH_USER@$DEPLOY_SSH_HOST:$DEPLOY_PATH/docker-compose.yml"
-    - scp -o StrictHostKeyChecking=no backend/migrations/init.up.sql "$DEPLOY_SSH_USER@$DEPLOY_SSH_HOST:$DEPLOY_PATH/backend/migrations/init.up.sql"
-    - |
-      ssh -o StrictHostKeyChecking=no "$DEPLOY_SSH_USER@$DEPLOY_SSH_HOST" "
-      cd $DEPLOY_PATH &&
-      echo '$CI_REGISTRY_PASSWORD' | docker login '$CI_REGISTRY' -u '$CI_REGISTRY_USER' --password-stdin &&
-      APP_IMAGE='$IMAGE_TAG' docker compose pull app &&
-      APP_IMAGE='$IMAGE_TAG' docker compose up -d --remove-orphans
-      "
+    - apk add --no-cache curl
+    - test -n "$RENDER_DEPLOY_HOOK_URL"
+    - curl --fail -X POST "$RENDER_DEPLOY_HOOK_URL"
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-      when: manual
+      when: on_success

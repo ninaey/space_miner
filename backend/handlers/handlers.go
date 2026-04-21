@@ -234,7 +234,7 @@ func (h *GameHandler) Sync(w http.ResponseWriter, r *http.Request) {
 // @Failure      500  {object}  APIError
 // @Router       /api/store/catalog [get]
 func (h *StoreHandler) GetCatalog(w http.ResponseWriter, r *http.Request) {
-	// Try Xsolla Catalog API first (with 5-min cache)
+	// Try Xsolla Catalog API first 
 	if h.catalogFetcher != nil {
 		xsollaItems, err := h.catalogFetcher.FetchCatalog(r.Context())
 		if err == nil && len(xsollaItems) > 0 {

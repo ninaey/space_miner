@@ -12,7 +12,7 @@ definitions:
         example: miner@space.io
         type: string
       user_id:
-        example: user-abc-123
+        example: 550e8400-e29b-41d4-a716-446655440000
         type: string
       username:
         example: AstroMiner42

@@ -61,8 +61,15 @@ type v3TokenResponse struct {
 	OrderID int64  `json:"order_id"`
 }
 
+// xsollaErrorResponse handles two error shapes returned by Xsolla APIs:
+//   - Store v3:     {"errorMessage": "...", "statusCode": 422}
+//   - PayStation:   {"error": {"code": "...", "description": "..."}}
 type xsollaErrorResponse struct {
 	ErrorMessage string `json:"errorMessage"`
+	Error        *struct {
+		Code        string `json:"code"`
+		Description string `json:"description"`
+	} `json:"error"`
 }
 
 // CreatePayment godoc
@@ -117,6 +124,7 @@ func (h *StoreHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// build the token request
 	tokenReq := v3TokenRequest{
 		User: v3User{
 			ID:   v3Field{Value: playerID},
@@ -180,8 +188,19 @@ func (h *StoreHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
 		log.Printf("paystation: xsolla returned %d: %s", resp.StatusCode, string(respBody))
 		details := fmt.Sprintf("Xsolla token creation failed (status %d)", resp.StatusCode)
 		var xsErr xsollaErrorResponse
-		if err := json.Unmarshal(respBody, &xsErr); err == nil && xsErr.ErrorMessage != "" {
-			details = fmt.Sprintf("%s: %s", details, xsErr.ErrorMessage)
+		if err := json.Unmarshal(respBody, &xsErr); err == nil {
+			switch {
+			case xsErr.ErrorMessage != "":
+				details = fmt.Sprintf("%s: %s", details, xsErr.ErrorMessage)
+			case xsErr.Error != nil && xsErr.Error.Description != "":
+				details = fmt.Sprintf("%s: [%s] %s", details, xsErr.Error.Code, xsErr.Error.Description)
+			}
+		}
+		// [0401-2000] means PayStation is not enabled/configured for this project.
+		// Fix: Publisher Account → your project → PayStation → enable the module
+		// and ensure the API key (XSOLLA_API_KEY) has Store + PayStation permissions.
+		if resp.StatusCode == http.StatusUnprocessableEntity {
+			log.Printf("paystation: 422 hint — verify PayStation is enabled in Publisher Account and XSOLLA_API_KEY has Store+PayStation permissions")
 		}
 		writeError(w, http.StatusBadGateway, details)
 		return

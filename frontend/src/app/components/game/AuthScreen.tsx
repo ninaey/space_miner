@@ -93,6 +93,7 @@ export function AuthScreen() {
   const [authError,   setAuthError]   = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
 
+  // handle the login and register the user if they don't exist
   useEffect(() => {
     // After login, Xsolla redirects to callbackUrl with ?token=<JWT>
     const params = new URLSearchParams(window.location.search);

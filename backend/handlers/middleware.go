@@ -37,6 +37,7 @@ func NewJWTValidator(jwksURL, issuer, audience string) (*JWTValidator, error) {
 	}, nil
 }
 
+// validate the JWT token
 func (v *JWTValidator) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
@@ -78,6 +79,7 @@ func (v *JWTValidator) AuthMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// get the player ID from the context
 func PlayerIDFromContext(ctx context.Context) (string, bool) {
 	playerID, ok := ctx.Value(playerIDContextKey).(string)
 	return playerID, ok
