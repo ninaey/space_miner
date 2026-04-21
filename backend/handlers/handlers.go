@@ -33,8 +33,13 @@ type StoreHandler struct {
 	projectID      int
 	merchantID     int
 	apiKey         string
-	httpClient     *http.Client
-	catalogFetcher *XsollaCatalogFetcher
+	// PayStation token request options (see XSOLLA_PAYSTATION_* env vars)
+	payStationSandbox  bool
+	payStationCurrency string
+	payStationLanguage string
+	payStationCountry  string
+	httpClient         *http.Client
+	catalogFetcher     *XsollaCatalogFetcher
 }
 
 func NewAuthHandler(service *game.Service) *AuthHandler {
@@ -45,15 +50,19 @@ func NewGameHandler(service *game.Service) *GameHandler {
 	return &GameHandler{service: service}
 }
 
-func NewStoreHandler(service *game.Service, catalogURL, webhookSecret string, projectID, merchantID int, apiKey string) *StoreHandler {
+func NewStoreHandler(service *game.Service, catalogURL, webhookSecret string, projectID, merchantID int, apiKey string, paySandbox bool, payCurrency, payLanguage, payCountry string) *StoreHandler {
 	return &StoreHandler{
-		service:        service,
-		catalogURL:     catalogURL,
-		webhookSecret:  webhookSecret,
-		projectID:      projectID,
-		merchantID:     merchantID,
-		apiKey:         apiKey,
-		catalogFetcher: NewXsollaCatalogFetcher(projectID),
+		service:            service,
+		catalogURL:         catalogURL,
+		webhookSecret:      webhookSecret,
+		projectID:          projectID,
+		merchantID:         merchantID,
+		apiKey:             apiKey,
+		payStationSandbox:  paySandbox,
+		payStationCurrency: payCurrency,
+		payStationLanguage: payLanguage,
+		payStationCountry:  payCountry,
+		catalogFetcher:     NewXsollaCatalogFetcher(projectID),
 		httpClient: &http.Client{
 			Timeout: 10 * time.Second,
 		},

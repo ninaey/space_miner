@@ -175,8 +175,9 @@ export function Store() {
     });
   }, []);
 
-  const openPayStationInNewTab = useCallback((token: string) => {
-    const paystationUrl = `https://sandbox-secure.xsolla.com/paystation4/?token=${encodeURIComponent(token)}`;
+  const openPayStationInNewTab = useCallback((token: string, sandbox: boolean) => {
+    const host = sandbox ? 'https://sandbox-secure.xsolla.com' : 'https://secure.xsolla.com';
+    const paystationUrl = `${host}/paystation4/?token=${encodeURIComponent(token)}`;
     const popup = window.open(paystationUrl, '_blank', 'noopener,noreferrer');
     if (!popup) {
       window.location.href = paystationUrl;
@@ -196,7 +197,8 @@ export function Store() {
     setPurchasing(item.sku);
 
     try {
-      const { token } = await createPayment(session.token, item.sku);
+      const { token, sandbox: tokenSandbox } = await createPayment(session.token, item.sku);
+      const paySandbox = tokenSandbox !== false;
       try {
         await ensurePayStationSDK();
 
@@ -205,7 +207,7 @@ export function Store() {
 
         XPayStationWidget.init({
           access_token: token,
-          sandbox: true,
+          sandbox: paySandbox,
           lightbox: {
             width: '740px',
             height: '760px',
@@ -236,7 +238,7 @@ export function Store() {
         XPayStationWidget.open();
       } catch (embedErr) {
         console.warn('PayStation embed unavailable, opening in new tab:', embedErr);
-        openPayStationInNewTab(token);
+        openPayStationInNewTab(token, paySandbox);
         setPurchasing(null);
         setFlashMsg({ text: 'Payment opened in new tab.', color: '#00F2FF' });
         setTimeout(() => setFlashMsg(null), 3000);

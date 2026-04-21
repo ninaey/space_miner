@@ -119,6 +119,8 @@ export function getGameItems(authToken: string): Promise<GameItemsResponse> {
 export interface CreatePaymentResponse {
   token: string;
   order_id: number;
+  /** Matches backend XSOLLA_PAYSTATION_SANDBOX — widget must use the same mode as the token. */
+  sandbox?: boolean;
 }
 
 export function createPayment(authToken: string, sku: string): Promise<CreatePaymentResponse> {

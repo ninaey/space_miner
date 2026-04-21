@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 )
 
 type Config struct {
@@ -17,8 +18,13 @@ type Config struct {
 	XsollaAPIKey        string
 	XsollaCatalogURL    string
 	XsollaWebhookSecret string
-	AllowedOrigins      string
-	StaticDir           string
+	// PayStation token (Store v3 admin/payment/token)
+	XsollaPayStationSandbox  bool
+	XsollaPayStationCurrency string // empty: omit — Xsolla uses catalog/regional default
+	XsollaPayStationLanguage string
+	XsollaPayStationCountry  string // empty: omit — use X-User-Ip / user profile
+	AllowedOrigins           string
+	StaticDir                string
 }
 
 func Load() Config {
@@ -36,8 +42,12 @@ func Load() Config {
 		XsollaAPIKey:        os.Getenv("XSOLLA_API_KEY"),
 		XsollaCatalogURL:    os.Getenv("XSOLLA_CATALOG_URL"),
 		XsollaWebhookSecret: os.Getenv("XSOLLA_WEBHOOK_SECRET"),
-		AllowedOrigins:      getEnv("ALLOWED_ORIGINS", "*"),
-		StaticDir:           os.Getenv("STATIC_DIR"),
+		XsollaPayStationSandbox:  parseEnvBool("XSOLLA_PAYSTATION_SANDBOX", true),
+		XsollaPayStationCurrency: strings.TrimSpace(os.Getenv("XSOLLA_PAYSTATION_CURRENCY")),
+		XsollaPayStationLanguage: getEnv("XSOLLA_PAYSTATION_LANGUAGE", "en"),
+		XsollaPayStationCountry:  strings.TrimSpace(strings.ToUpper(os.Getenv("XSOLLA_PAYSTATION_COUNTRY"))),
+		AllowedOrigins:           getEnv("ALLOWED_ORIGINS", "*"),
+		StaticDir:                os.Getenv("STATIC_DIR"),
 	}
 
 	if cfg.XsollaJWKSURL == "" {
@@ -58,4 +68,22 @@ func getEnv(key, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+func parseEnvBool(key string, defaultVal bool) bool {
+	v := strings.TrimSpace(strings.ToLower(os.Getenv(key)))
+	if v == "" {
+		return defaultVal
+	}
+	b, err := strconv.ParseBool(v)
+	if err != nil {
+		if v == "no" || v == "n" || v == "off" || v == "0" {
+			return false
+		}
+		if v == "yes" || v == "y" || v == "on" || v == "1" {
+			return true
+		}
+		return defaultVal
+	}
+	return b
 }

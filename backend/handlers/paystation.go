@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"slices"
 	"strings"
@@ -19,17 +20,17 @@ type createPaymentRequest struct {
 }
 
 type v3TokenRequest struct {
-	User            v3User            `json:"user"`
-	Settings        *v3Settings       `json:"settings,omitempty"`
-	Purchase        v3Purchase        `json:"purchase"`
-	Sandbox         bool              `json:"sandbox"`
+	User             v3User            `json:"user"`
+	Settings         *v3Settings       `json:"settings,omitempty"`
+	Purchase         v3Purchase        `json:"purchase"`
+	Sandbox          bool              `json:"sandbox"`
 	CustomParameters map[string]string `json:"custom_parameters,omitempty"`
 }
 
 type v3User struct {
 	ID      v3Field    `json:"id"`
-	Name    v3Field    `json:"name,omitempty"`
-	Email   v3Field    `json:"email,omitempty"`
+	Name    *v3Field   `json:"name,omitempty"`
+	Email   *v3Field   `json:"email,omitempty"`
 	Country *v3Country `json:"country,omitempty"`
 }
 
@@ -124,33 +125,46 @@ func (h *StoreHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// build the token request
+	lang := h.payStationLanguage
+	if lang == "" {
+		lang = "en"
+	}
+	settings := &v3Settings{Language: lang}
+	if h.payStationCurrency != "" {
+		settings.Currency = h.payStationCurrency
+	}
+
+	user := v3User{ID: v3Field{Value: playerID}}
+	if strings.TrimSpace(player.Username) != "" {
+		user.Name = &v3Field{Value: strings.TrimSpace(player.Username)}
+	}
+	if strings.TrimSpace(player.Email) != "" {
+		user.Email = &v3Field{Value: strings.TrimSpace(player.Email)}
+	}
+
+	// Xsolla requires user.country OR a geolocatable public IP in X-User-Ip.
+	// Localhost / Docker bridge IPs are not valid for IP-based country detection;
+	// sending them breaks PayStation with generic 422 / [0401-2000].
+	country := h.payStationCountry
+	if country == "" && xsollaPublicClientIP(r) == "" {
+		country = "US"
+	}
+	if country != "" {
+		user.Country = &v3Country{Value: country, AllowModify: true}
+	}
+
 	tokenReq := v3TokenRequest{
-		User: v3User{
-			ID:   v3Field{Value: playerID},
-			Name: v3Field{Value: player.Username},
-			Country: &v3Country{
-				Value:       "US",
-				AllowModify: true,
-			},
-		},
-		Settings: &v3Settings{
-			Language: "en",
-			Currency: "USD",
-		},
+		User:     user,
+		Settings: settings,
 		Purchase: v3Purchase{
 			Items: []v3PurchaseItem{
 				{SKU: req.SKU, Quantity: 1},
 			},
 		},
-		Sandbox: true,
+		Sandbox: h.payStationSandbox,
 		CustomParameters: map[string]string{
 			"sku": req.SKU,
 		},
-	}
-
-	if player.Email != "" {
-		tokenReq.User.Email = v3Field{Value: player.Email}
 	}
 
 	body, err := json.Marshal(tokenReq)
@@ -160,7 +174,7 @@ func (h *StoreHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	url := fmt.Sprintf("https://store.xsolla.com/api/v3/project/%d/admin/payment/token", h.projectID)
-	httpReq, err := http.NewRequestWithContext(r.Context(), http.MethodPost, url, bytes.NewReader(body))
+	httpReq, err := http.NewRequestWithContext(r.Context(), http.MethodPost, url, bytes.NewBuffer(body))
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to create HTTP request")
 		return
@@ -170,7 +184,7 @@ func (h *StoreHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
 	httpReq.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(credentials)))
 	httpReq.Header.Set("Content-Type", "application/json")
 
-	if ip := clientIP(r); ip != "" {
+	if ip := xsollaPublicClientIP(r); ip != "" {
 		httpReq.Header.Set("X-User-Ip", ip)
 	}
 
@@ -196,11 +210,10 @@ func (h *StoreHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
 				details = fmt.Sprintf("%s: [%s] %s", details, xsErr.Error.Code, xsErr.Error.Description)
 			}
 		}
-		// [0401-2000] means PayStation is not enabled/configured for this project.
-		// Fix: Publisher Account → your project → PayStation → enable the module
-		// and ensure the API key (XSOLLA_API_KEY) has Store + PayStation permissions.
+		// [0401-2000] is a generic PayStation failure: module off, wrong sandbox mode,
+		// API key scopes, or project/merchant mismatch. See .env.example (XSOLLA_PAYSTATION_*).
 		if resp.StatusCode == http.StatusUnprocessableEntity {
-			log.Printf("paystation: 422 hint — verify PayStation is enabled in Publisher Account and XSOLLA_API_KEY has Store+PayStation permissions")
+			log.Printf("paystation: 422 hint — PayStation enabled + API key (Store+PayStation); XSOLLA_PAYSTATION_SANDBOX matches project; set XSOLLA_PAYSTATION_COUNTRY for local/Docker (never send private/loopback IP as X-User-Ip)")
 		}
 		writeError(w, http.StatusBadGateway, details)
 		return
@@ -218,11 +231,11 @@ func (h *StoreHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{
 		"token":    tokenResp.Token,
 		"order_id": tokenResp.OrderID,
+		"sandbox":  h.payStationSandbox,
 	})
 }
 
-// clientIP extracts the best-guess public IP of the caller so Xsolla can
-// detect the user's country/currency when creating a payment token.
+// clientIP extracts the best-guess client IP from proxy headers or RemoteAddr.
 func clientIP(r *http.Request) string {
 	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
 		if idx := strings.Index(xff, ","); idx >= 0 {
@@ -240,13 +253,30 @@ func clientIP(r *http.Request) string {
 	return strings.Trim(host, "[]")
 }
 
+// xsollaPublicClientIP returns an IP suitable for X-User-Ip: only routable
+// public addresses. Private/loopback IPs must not be sent; use user.country instead.
+func xsollaPublicClientIP(r *http.Request) string {
+	ip := clientIP(r)
+	if ip == "" {
+		return ""
+	}
+	parsed := net.ParseIP(ip)
+	if parsed == nil {
+		return ""
+	}
+	if parsed.IsLoopback() || parsed.IsPrivate() || parsed.IsLinkLocalUnicast() {
+		return ""
+	}
+	return ip
+}
+
 // ── Webhook notification types and parsing ───────────────────────
 
 type webhookNotification struct {
-	NotificationType string               `json:"notification_type"`
-	User             *webhookUser         `json:"user,omitempty"`
-	Transaction      *webhookTransaction  `json:"transaction,omitempty"`
-	Purchase         *webhookPurchase     `json:"purchase,omitempty"`
+	NotificationType string              `json:"notification_type"`
+	User             *webhookUser        `json:"user,omitempty"`
+	Transaction      *webhookTransaction `json:"transaction,omitempty"`
+	Purchase         *webhookPurchase    `json:"purchase,omitempty"`
 }
 
 type webhookUser struct {
