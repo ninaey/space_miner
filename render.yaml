@@ -21,6 +21,8 @@ services:
           property: connectionString
       - key: ALLOWED_ORIGINS
         sync: false
+      # Must use the same Login Project UUID as the frontend Login widget (AuthScreen XSOLLA_LOGIN_PROJECT_ID).
+      # Example: https://login.xsolla.com/api/projects/<UUID>/jwks.json — wrong UUID → 401 invalid token on create-payment.
       - key: XSOLLA_JWKS_URL
         sync: false
       - key: XSOLLA_ISSUER

@@ -17,7 +17,7 @@ import { loginOrRegisterPlayer, getGameItems } from '../../lib/backendApi';
    ──────────────────────────────────────────────────────────────── */
 // ⚠️  This must be the Login Project UUID (not the numeric project ID 304856).
 // Find it: Publisher Account → Players → Login → your project → Copy ID (the UUID).
-const XSOLLA_LOGIN_PROJECT_ID = '4e609fab-2ce3-4711-a2a6-bf46d1f6f775';
+const XSOLLA_LOGIN_PROJECT_ID = '1dae29e3-81fe-4a05-820f-6a679cd57e1f';
 const XSOLLA_SDK_URL          = 'https://login-sdk.xsolla.com/latest/';
 const XSOLLA_LOCALE           = 'en_US';
 
