@@ -33,6 +33,17 @@ services:
         value: "879363"
       - key: XSOLLA_API_KEY
         sync: false
+      # Pay Station token (POST .../admin/payment/token) — must match Publisher Account
+      # Set sandbox true/false to match Pay Station mode in the project (sandbox vs live).
+      - key: XSOLLA_PAYSTATION_SANDBOX
+        sync: false
+      - key: XSOLLA_PAYSTATION_CURRENCY
+        sync: false
+      - key: XSOLLA_PAYSTATION_LANGUAGE
+        value: "en"
+      # Optional: ISO 3166-1 alpha-2 (e.g. MY). Helps if the host does not expose a public client IP.
+      - key: XSOLLA_PAYSTATION_COUNTRY
+        sync: false
       - key: XSOLLA_WEBHOOK_SECRET
         sync: false
       - key: XSOLLA_CATALOG_URL

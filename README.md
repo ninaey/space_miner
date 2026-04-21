@@ -80,11 +80,16 @@ Minimum:
 - `DATABASE_URL` (Postgres connection string)
 
 Optional Xsolla values:
+- `XSOLLA_PROJECT_ID`, `XSOLLA_MERCHANT_ID`, `XSOLLA_API_KEY` (required for Pay Station checkout; catalog can still load from the public Store API without the key)
+- `XSOLLA_PAYSTATION_SANDBOX` — `true` or `false`; must match whether Pay Station is used in **sandbox** or **live** mode in [Publisher Account](https://publisher.xsolla.com/) for that project (mismatch often yields HTTP 422 / `[0401-2000]` from token creation)
+- `XSOLLA_PAYSTATION_CURRENCY`, `XSOLLA_PAYSTATION_LANGUAGE`, `XSOLLA_PAYSTATION_COUNTRY` (optional; country or a public client IP is required by Xsolla for currency selection — the backend sets a safe default when needed)
 - `XSOLLA_JWKS_URL`
 - `XSOLLA_ISSUER`
 - `XSOLLA_AUDIENCE`
 - `XSOLLA_CATALOG_URL`
 - `XSOLLA_WEBHOOK_SECRET`
+
+**Pay Station checklist:** same merchant and numeric project ID as in Publisher Account; API key from **Company settings → API keys** with **Store** and **Pay Station** access; Pay Station module turned on for the project; sandbox flag in env matches sandbox vs live; virtual item SKUs in the purchase request exist and are sellable in that project.
 
 ### Frontend (`frontend/.env`)
 - `VITE_API_BASE_URL` (default `http://localhost:8080`)
