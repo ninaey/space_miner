@@ -93,15 +93,14 @@ func (h *StoreHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// POST /v3/project/{project_id}/admin/payment/token uses Catalog API basicAuth:
+	// Authorization: Basic base64(project_id:api_key). See Xsolla docs (not merchant_id:api_key).
 	var missing []string
 	if h.apiKey == "" {
 		missing = append(missing, "XSOLLA_API_KEY")
 	}
 	if h.projectID == 0 {
 		missing = append(missing, "XSOLLA_PROJECT_ID")
-	}
-	if h.merchantID == 0 {
-		missing = append(missing, "XSOLLA_MERCHANT_ID")
 	}
 	if len(missing) > 0 {
 		slices.Sort(missing)
@@ -180,7 +179,7 @@ func (h *StoreHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	credentials := fmt.Sprintf("%d:%s", h.merchantID, h.apiKey)
+	credentials := fmt.Sprintf("%d:%s", h.projectID, h.apiKey)
 	httpReq.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(credentials)))
 	httpReq.Header.Set("Content-Type", "application/json")
 
